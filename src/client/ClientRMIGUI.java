@@ -7,11 +7,21 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.HashSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -24,15 +34,16 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * 
- * @author Daragh Walshe 	B00064428
- * RMI Assignment 2		 	April 2015
+ * @author
+ * RMI Assignment
  *
  */
 public class ClientRMIGUI extends JFrame implements ActionListener{
-	
+
 	private static final long serialVersionUID = 1L;	
 	private JPanel textPanel, inputPanel;
 	private JTextField textField;
@@ -45,15 +56,14 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
     
     protected JTextArea textArea, userArea;
     protected JFrame frame;
-    protected JButton privateMsgButton, startButton, sendButton;
+    protected JButton privateMsgButton, startButton, sendButton,fileButton;
     protected JPanel clientPanel, userPanel;
 
 	/**
-	 * Main method to start client GUI app.
+	 * Main method to start client GUI
 	 * @param args
 	 */
 	public static void main(String args[]){
-		//set the look and feel to 'Nimbus'
 		try{
 			for(LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()){
 				if("Nimbus".equals(info.getName())){
@@ -63,9 +73,10 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 			}
 		}
 		catch(Exception e){
-			}
+			System.out.println(e);
+		}
 		new ClientRMIGUI();
-		}//end main
+	}//end main
 	
 	
 	/**
@@ -73,8 +84,7 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 	 */
 	public ClientRMIGUI(){
 			
-		frame = new JFrame("Client Chat Console");	
-	
+		frame = new JFrame("Client Chat Room");	 
 		//-----------------------------------------
 		/*
 		 * intercept close method, inform server we are leaving
@@ -92,7 +102,7 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 						e.printStackTrace();
 					}		        	
 		        }
-		        System.exit(0);  
+		    	frame.dispose();
 		    }   
 		});
 		//-----------------------------------------
@@ -105,20 +115,19 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 		Container c = getContentPane();
 		JPanel outerPanel = new JPanel(new BorderLayout());
 		
-		outerPanel.add(getInputPanel(), BorderLayout.CENTER);
-		outerPanel.add(getTextPanel(), BorderLayout.NORTH);
+		outerPanel.add(getInputPanel(), BorderLayout.SOUTH);
+		outerPanel.add(getTextPanel(), BorderLayout.CENTER);
 		
 		c.setLayout(new BorderLayout());
 		c.add(outerPanel, BorderLayout.CENTER);
-		c.add(getUsersPanel(), BorderLayout.WEST);
+		c.add(getUsersPanel(), BorderLayout.EAST);
+		c.add(getGroupsPanel(), BorderLayout.WEST);
 
 		frame.add(c);
 		frame.pack();
-		frame.setAlwaysOnTop(true);
-		frame.setLocation(150, 150);
 		textField.requestFocus();
-	
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		frame.setLocationRelativeTo(null);// show in the middle of the screen
 		frame.setVisible(true);
 	}
 	
@@ -128,7 +137,7 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 	 * @return
 	 */
 	public JPanel getTextPanel(){
-		String welcome = "Welcome enter your name and press Start to begin\n";
+		String welcome = "Welcome enter your name and press Start to begin\n"; 
 		textArea = new JTextArea(welcome, 14, 34);
 		textArea.setMargin(new Insets(10, 10, 10, 10));
 		textArea.setFont(meiryoFont);
@@ -140,7 +149,7 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 		textPanel = new JPanel();
 		textPanel.add(scrollPane);
 	
-		textPanel.setFont(new Font("Meiryo", Font.PLAIN, 14));
+		textPanel.setFont(new Font("TimeNewRomes", Font.PLAIN, 15));
 		return textPanel;
 	}
 	
@@ -165,13 +174,13 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 	public JPanel getUsersPanel(){
 		
 		userPanel = new JPanel(new BorderLayout());
-		String  userStr = " Current Users      ";
+		String  userStr = " Online User List     ";
 		
 		JLabel userLabel = new JLabel(userStr, JLabel.CENTER);
 		userPanel.add(userLabel, BorderLayout.NORTH);	
-		userLabel.setFont(new Font("Meiryo", Font.PLAIN, 16));
+		userLabel.setFont(new Font("TimeNewRomes", Font.PLAIN, 16));
 
-		String[] noClientsYet = {"No other users"};
+		String[] noClientsYet = {"No users online"};
 		setClientPanel(noClientsYet);
 
 		clientPanel.setFont(meiryoFont);
@@ -180,6 +189,24 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 
 		return userPanel;		
 	}
+	
+	public JPanel getGroupsPanel(){
+			
+			userPanel = new JPanel(new BorderLayout());
+			String  groupStr = " Your Groups List     ";
+			
+			JLabel groupLabel = new JLabel(groupStr, JLabel.CENTER);
+			userPanel.add(groupLabel, BorderLayout.NORTH);	
+			groupLabel.setFont(new Font("TimeNewRomes", Font.PLAIN, 16));
+	
+			String[] noClientsYet = {"No groups yet"};
+			setClientPanel(noClientsYet);
+	
+			clientPanel.setFont(meiryoFont);		
+			userPanel.setBorder(blankBorder);
+	
+			return userPanel;		
+		}
 
 	/**
 	 * Populate current user panel with a 
@@ -217,22 +244,32 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 		sendButton.addActionListener(this);
 		sendButton.setEnabled(false);
 
-        privateMsgButton = new JButton("Send PM");
+        privateMsgButton = new JButton("Private Message");
         privateMsgButton.addActionListener(this);
         privateMsgButton.setEnabled(false);
 		
-		startButton = new JButton("Start ");
+		startButton = new JButton("Join ");
 		startButton.addActionListener(this);
 		
-		JPanel buttonPanel = new JPanel(new GridLayout(4, 1));
+		fileButton = new JButton("Send File");
+		fileButton.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent event) {
+				eventOnImport(new JButton());
+		   }
+		});
+		fileButton.setEnabled(false);
+		
+		JPanel buttonPanel = new JPanel(new GridLayout(5, 1));
 		buttonPanel.add(privateMsgButton);
+		buttonPanel.add(fileButton);
 		buttonPanel.add(new JLabel(""));
 		buttonPanel.add(startButton);
 		buttonPanel.add(sendButton);
 		
 		return buttonPanel;
 	}
-	
+
+
 	/**
 	 * Action handling on the buttons
 	 */
@@ -251,7 +288,8 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 					if(!chatClient.connectionProblem){
 						startButton.setEnabled(false);
 						sendButton.setEnabled(true);
-						}
+						fileButton.setEnabled(true);
+					}
 				}
 				else{
 					JOptionPane.showMessageDialog(frame, "Enter your name to Start");
@@ -322,15 +360,63 @@ public class ClientRMIGUI extends JFrame implements ActionListener{
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Upload files 
+	 */
+	private void eventOnImport(JButton fileButton) {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setMultiSelectionEnabled(true);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("war","xml", "txt", "doc", "docx","jpg","png");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showOpenDialog(fileButton);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File[] arrfiles = chooser.getSelectedFiles();
+			if (arrfiles == null || arrfiles.length == 0) {
+				return;
+			}
+			FileInputStream input = null;
+			FileOutputStream out = null;
+			String save_path = "./src/client/sourceFile"; // store path
+			try {
+				for (File f : arrfiles) {
+					File dir = new File(save_path);
+					File[] fs = dir.listFiles();
+					HashSet<String> set = new HashSet<String>();
+					for (File file : fs) {
+						set.add(file.getName());// get the file name
+					}
+					// p.s. 这个if可以删掉 看需求
+					if (set.contains(f.getName())) {// indicate whether the file has been existed in the system
+						JOptionPane.showMessageDialog(new JDialog(),
+								f.getName() + ":The selected file is already exist！");
+						return;
+					}
+					input = new FileInputStream(f);
+					byte[] buffer = new byte[1024];
+					File des = new File(save_path, f.getName());
+					out = new FileOutputStream(des);
+					int len = 0;
+					while (-1 != (len = input.read(buffer))) {
+						out.write(buffer, 0, len);
+					}
+					out.close();
+					input.close();
+					String successfulHint = "I have upload " + f.getName() + "\n";
+					chatClient.serverIF.updateChat(name, successfulHint);
+				}	
+				JOptionPane.showMessageDialog(null, "Upload successfully. :)", "Hint",
+						JOptionPane.INFORMATION_MESSAGE);
+				} catch (FileNotFoundException e1) {
+					JOptionPane.showMessageDialog(null, "Failed to upload. :(", "Hint",
+							JOptionPane.ERROR_MESSAGE);
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					JOptionPane.showMessageDialog(null, "Failed to upload. :(", "Hint",
+							JOptionPane.ERROR_MESSAGE);
+					e1.printStackTrace();
+				}
+			}
+	}
 
 }//end class
-
-
-
-
-
-
-
-
-
-
