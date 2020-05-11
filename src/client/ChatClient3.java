@@ -13,14 +13,14 @@ import server.ChatServerIF;
 import common.*;
 
 /**
- * 
+ *
  * @author Daragh Walshe 	B00064428
  * RMI Assignment 2		 	April 2015
  *
  */
 public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 7468891722773409712L;
 	ClientRMIGUI gui;
@@ -44,7 +44,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 				"Connection Error",
 				JOptionPane.ERROR_MESSAGE
 			);
-			
+
 			connectionProblem = true;
 			e.printStackTrace();
 		}
@@ -55,7 +55,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 	}
 	/**
 	 * class constructor,
-	 * note may also use an overloaded constructor with 
+	 * note may also use an overloaded constructor with
 	 * a port no passed in argument to super
 	 * @throws RemoteException
 	 */
@@ -74,7 +74,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 				"Connection Error",
 				JOptionPane.ERROR_MESSAGE
 			);
-			
+
 			connectionProblem = true;
 			e.printStackTrace();
 		}
@@ -83,8 +83,8 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 	public boolean login(String userName, String password) {
 		try {
 			int uid = this.serverIF.login(userName, password);
@@ -98,19 +98,19 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Register our own listening service/interface
 	 * lookup the server RMI interface, then send our details
 	 * @throws RemoteException
 	 */
-	public void startClient() throws RemoteException {		
-		String[] details = {name, hostName, clientServiceName};	
+	public void startClient() throws RemoteException {
+		String[] details = {name, hostName, clientServiceName};
 
 		try {
 			Naming.rebind("rmi://" + hostName + "/" + clientServiceName, this);
-			serverIF = ( ChatServerIF )Naming.lookup("rmi://" + hostName + "/" + serviceName);	
-		} 
+			serverIF = ( ChatServerIF )Naming.lookup("rmi://" + hostName + "/" + serviceName);
+		}
 		catch (ConnectException  e) {
 			JOptionPane.showMessageDialog(
 					gui.frame, "The server seems to be unavailable\nPlease try later",
@@ -124,7 +124,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 		}
 		if(!connectionProblem){
 			registerWithServer(details);
-		}	
+		}
 		System.out.println("Client Listen RMI Server is running...\n");
 	}
 
@@ -134,10 +134,10 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 	 * the server to register out interest in joining the chat
 	 * @param details
 	 */
-	public void registerWithServer(String[] details) {		
+	public void registerWithServer(String[] details) {
 		try{
 			serverIF.passIDentity(this.ref);//now redundant ??
-			serverIF.registerListener(details);			
+			serverIF.registerListener(details);
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -147,7 +147,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 	//=====================================================================
 	/**
 	 * Receive a string from the chat server
-	 * this is the clients RMI method, which will be used by the server 
+	 * this is the clients RMI method, which will be used by the server
 	 * to send messages to us
 	 */
 	@Override
@@ -159,7 +159,7 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 	}
 
 	/**
-	 * A method to update the display of users 
+	 * A method to update the display of users
 	 * currently connected to the server
 	 */
 	@Override
