@@ -12,6 +12,8 @@ import java.rmi.server.RemoteRef;
  *
  */
 public interface ChatServerIF extends Remote {
+	
+	public int login(String userName, String password) throws RemoteException;
 		
 	public void updateChat(String userName, String chatMessage)throws RemoteException;
 	

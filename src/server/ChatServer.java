@@ -11,6 +11,8 @@ import java.util.Vector;
 
 import client.ChatClient3IF;
 
+import server.model.*;
+
 /**
  * 
  * @author Daragh Walshe 	B00064428
@@ -219,6 +221,17 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		for(int i : privateGroup){
 			pc= chatters.elementAt(i);
 			pc.getClient().messageFromServer(privateMessage);
+		}
+	}
+
+	@Override
+	public int login(String userName, String password) throws RemoteException {
+		Database db = new Database();
+		UserModel user = UserModel.getByNameAndPassword(db, userName, password);
+		if (user != null) {
+			return user.uid;
+		} else {
+			return 0;
 		}
 	}
 	

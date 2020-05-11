@@ -4,6 +4,8 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.event.*;
+import java.rmi.RemoteException;
+
 import javax.swing.*;
 
 public class ClientLoginGUI extends JFrame implements ActionListener {
@@ -135,22 +137,24 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
         	String pw = new String(password.getPassword());// get password
         	
         	if(!"".equals(account) && !"".equals(pw)) { // the account and the password are not empty
-        		/* 
-            	 * 
-            	 * 此处应当判断登陆条件是否正确 
-            	 * 如正确执行下两行代码
-            	 * 
-            	 * 
-            	 */
-            	this.dispose(); // 登录页面消失
-            	new ClientRMIGUI(); // 创建新GUI页面: 聊天室
+        		try {
+					ChatClient3 client = new ChatClient3();
+					if (client.login(account, pw)) {
+						this.dispose();
+						new ClientRMIGUI();
+					} else {
+						JOptionPane.showMessageDialog(this, "Your username or password is wrong:(", "Prompt", JOptionPane.WARNING_MESSAGE);
+					}
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
         	} else if ("".equals(account)) {
         		JOptionPane.showMessageDialog(this, "You have not input your username:(", "Prompt", JOptionPane.WARNING_MESSAGE);
         	} else if ("".equals(pw)) {
         		JOptionPane.showMessageDialog(this, "You have not input your password:(", "Prompt", JOptionPane.WARNING_MESSAGE);
         	} else {
         		JOptionPane.showMessageDialog(this, "You have not input your username and password:(", "Prompt", JOptionPane.WARNING_MESSAGE);
-        	} 	
+        	}
         }
         
         // jump to the register window
