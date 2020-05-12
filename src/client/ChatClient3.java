@@ -1,4 +1,5 @@
 package client;
+
 import java.net.MalformedURLException;
 import java.rmi.ConnectException;
 import java.rmi.Naming;
@@ -12,17 +13,9 @@ import server.ChatServerIF;
 
 import common.*;
 
-/**
- *
- * @author Daragh Walshe 	B00064428
- * RMI Assignment 2		 	April 2015
- *
- */
-public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
-	/**
-	 *
-	 */
+public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	private static final long serialVersionUID = 7468891722773409712L;
+
 	ClientRMIGUI gui;
 	private String hostName = "localhost";
 	private String serviceName = "GroupChatService";
@@ -36,27 +29,22 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 		super();
 		try {
 			this.serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		}
-		catch (ConnectException e) {
-			JOptionPane.showMessageDialog(
-				gui.frame,
-				"The server is unavailable, please try it later",
-				"Connection Error",
-				JOptionPane.ERROR_MESSAGE
-			);
+		} catch (ConnectException e) {
+			JOptionPane.showMessageDialog(gui.frame, "The server is unavailable, please try it later",
+					"Connection Error", JOptionPane.ERROR_MESSAGE);
 
 			connectionProblem = true;
 			e.printStackTrace();
-		}
-		catch (NotBoundException | MalformedURLException e) {
+		} catch (NotBoundException | MalformedURLException e) {
 			connectionProblem = true;
 			e.printStackTrace();
 		}
 	}
+
 	/**
-	 * class constructor,
-	 * note may also use an overloaded constructor with
-	 * a port no passed in argument to super
+	 * class constructor, note may also use an overloaded constructor with a port no
+	 * passed in argument to super
+	 *
 	 * @throws RemoteException
 	 */
 	public ChatClient3(ClientRMIGUI aChatGUI, String userName) throws RemoteException {
@@ -66,24 +54,17 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 		this.clientServiceName = "ClientListenService_" + userName;
 		try {
 			this.serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		}
-		catch (ConnectException e) {
-			JOptionPane.showMessageDialog(
-				gui.frame,
-				"The server is unavailable, please try it later",
-				"Connection Error",
-				JOptionPane.ERROR_MESSAGE
-			);
+		} catch (ConnectException e) {
+			JOptionPane.showMessageDialog(gui.frame, "The server is unavailable, please try it later",
+					"Connection Error", JOptionPane.ERROR_MESSAGE);
 
 			connectionProblem = true;
 			e.printStackTrace();
-		}
-		catch (NotBoundException | MalformedURLException e) {
+		} catch (NotBoundException | MalformedURLException e) {
 			connectionProblem = true;
 			e.printStackTrace();
 		}
 	}
-
 
 	public boolean login(String userName, String password) {
 		try {
@@ -92,80 +73,73 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 				me = new User(uid, userName);
 				return true;
 			}
-		}
-		catch (RemoteException e) {
+		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
 
 	/**
-	 * Register our own listening service/interface
-	 * lookup the server RMI interface, then send our details
+	 * Register our own listening service/interface lookup the server RMI interface,
+	 * then send our details
+	 *
 	 * @throws RemoteException
 	 */
 	public void startClient() throws RemoteException {
-		String[] details = {name, hostName, clientServiceName};
+		String[] details = { name, hostName, clientServiceName };
 
 		try {
 			Naming.rebind("rmi://" + hostName + "/" + clientServiceName, this);
-			serverIF = ( ChatServerIF )Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		}
-		catch (ConnectException  e) {
-			JOptionPane.showMessageDialog(
-					gui.frame, "The server seems to be unavailable\nPlease try later",
+			serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
+		} catch (ConnectException e) {
+			JOptionPane.showMessageDialog(gui.frame, "The server seems to be unavailable\nPlease try later",
 					"Connection problem", JOptionPane.ERROR_MESSAGE);
 			connectionProblem = true;
 			e.printStackTrace();
-		}
-		catch(NotBoundException | MalformedURLException me){
+		} catch (NotBoundException | MalformedURLException me) {
 			connectionProblem = true;
 			me.printStackTrace();
 		}
-		if(!connectionProblem){
+		if (!connectionProblem) {
 			registerWithServer(details);
 		}
 		System.out.println("Client Listen RMI Server is running...\n");
 	}
 
-
 	/**
-	 * pass our username, hostname and RMI service name to
-	 * the server to register out interest in joining the chat
+	 * pass our username, hostname and RMI service name to the server to register
+	 * out interest in joining the chat
+	 *
 	 * @param details
 	 */
 	public void registerWithServer(String[] details) {
-		try{
-			serverIF.passIDentity(this.ref);//now redundant ??
+		try {
 			serverIF.registerListener(details);
-		}
-		catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	//=====================================================================
+	// =====================================================================
 	/**
-	 * Receive a string from the chat server
-	 * this is the clients RMI method, which will be used by the server
-	 * to send messages to us
+	 * Receive a string from the chat server this is the clients RMI method, which
+	 * will be used by the server to send messages to us
 	 */
 	@Override
 	public void messageFromServer(String message) throws RemoteException {
-		System.out.println( message );
-		gui.textArea.append( message );
-		//make the gui display the last appended text, ie scroll to bottom
+		System.out.println(message);
+		gui.textArea.append(message);
+		// make the gui display the last appended text, ie scroll to bottom
 		gui.textArea.setCaretPosition(gui.textArea.getDocument().getLength());
 	}
 
 	/**
-	 * A method to update the display of users
-	 * currently connected to the server
+	 * A method to update the display of users currently connected to the server
 	 */
 	@Override
 	public void updateUserList(String[] currentUsers) throws RemoteException {
 
-		if(currentUsers.length < 2){
+		if (currentUsers.length < 2) {
 			gui.privateMsgButton.setEnabled(false);
 		}
 		gui.userPanel.remove(gui.clientPanel);
@@ -174,17 +148,4 @@ public class ChatClient3  extends UnicastRemoteObject implements ChatClient3IF {
 		gui.clientPanel.revalidate();
 	}
 
-}//end class
-
-
-
-
-
-
-
-
-
-
-
-
-
+}// end class

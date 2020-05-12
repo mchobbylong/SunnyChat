@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.server.RemoteRef;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Date;
 import java.util.Vector;
@@ -80,19 +79,6 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		String message = name + " : " + nextPost + "\n";
 		sendToAll(message);
 	}
-
-	/**
-	 * Receive a new client remote reference
-	 */
-	@Override
-	public void passIDentity(RemoteRef ref) throws RemoteException {
-		// System.out.println("\n" + ref.remoteToString() + "\n");
-		try {
-			System.out.println(line + ref.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}// end passIDentity
 
 	/**
 	 * Receive a new client and display details to the console send on to register
