@@ -7,11 +7,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,25 +17,10 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.HashSet;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 
 /**
  * 
@@ -49,25 +31,25 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class ClientChatRoom extends JFrame implements ActionListener{
 
 	private static final long serialVersionUID = 1L;	
-	private JPanel textPanel, inputPanel, leftPanel;
+	private JPanel textPanel;
 	private JTextArea textField;
 	private String name, message;
-	private Font meiryoFont = new Font("Meiryo", Font.PLAIN, 14);
-	private Border blankBorder = BorderFactory.createEmptyBorder(10,10,20,10);//top,r,b,l
+	
 	private ChatClient3 chatClient;
     private JList<String> list;
     private DefaultListModel<String> listModel;
-	private JButton exit_btn,min_btn;// exit button and minimize button   
+	private JButton exitButton,minButton;// exit button and minimize button   
 	private JLabel backgroud;
-    protected JTextArea textArea, userArea;
-    protected JFrame frame;
-    protected JButton privateMsgButton, startButton, sendButton,fileButton, findFriendsButton, findGroupsButton, logoutButton;
-    protected JPanel clientPanel, userPanel;
-
+    private JButton sendButton,fileButton;
+    private JButton findFriendsButton, findGroupsButton, logoutButton;
+    private Font msgFont = new Font(message, Font.PLAIN, 16);
+    
 	boolean isDragged = false;// record the status of mouse
-	private Point frame_temp;// relative location of mouse
-	private Point frame_loc;// frame location
+	private Point frameTemp;// relative location of mouse
+	private Point frameLoc;// frame location
 	
+	protected JTextArea textArea;
+	protected JPanel clientPanel, userPanel;
 	/**
 	 * Main method to start client GUI
 	 * @param args
@@ -87,30 +69,30 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 		c.setLayout(null);
 		
 		// minimize button
-		min_btn = new JButton(new ImageIcon("image/login/min_btn.jpg"));
-		min_btn.addActionListener(new ActionListener() {
+		minButton = new JButton(new ImageIcon("image/login/min_btn.jpg"));
+		minButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setExtendedState(JFrame.ICONIFIED);
 			}
 		});
-		min_btn.setBounds(740, 0, 30, 30);
-		c.add(min_btn);
+		minButton.setBounds(740, 0, 30, 30);
+		c.add(minButton);
 		
 		// exit button
-		exit_btn = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
-		exit_btn.addActionListener(new ActionListener() {
+		exitButton = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
+		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
-		exit_btn.setBounds(770, 0, 30, 30);
-		c.add(exit_btn);
+		exitButton.setBounds(770, 0, 30, 30);
+		c.add(exitButton);
 		
 		// message input text field
 		textField = new JTextArea();
-		textField.setFont(meiryoFont);
+		textField.setFont(msgFont);
 		/*textField.setBounds(220, 50, 580, 220);*/
 		textField.setBounds(200, 300, 396, 180);
 		c.add(textField);
@@ -128,20 +110,20 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 				eventOnImport(new JButton());
 		   }
 		});
-		fileButton.setBounds(616, 417, 164, 33);
+		fileButton.setBounds(616, 350, 164, 33);
 		c.add(fileButton);
 
 		// receive message
 		textArea = new JTextArea(14, 34);
 		textArea.setMargin(new Insets(10, 10, 10, 10));
-		textArea.setFont(meiryoFont);	
+		textArea.setFont(msgFont);	
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		textPanel = new JPanel();
 		textPanel.add(scrollPane);
-		textPanel.setFont(new Font("TimeNewRomes", Font.PLAIN, 15));
+		textPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
 		
 		textArea.setBounds(200, 50, 580, 220);
 		c.add(textArea);
@@ -179,7 +161,7 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 			}
 			@Override
 			public void mousePressed(MouseEvent e) {
-				frame_temp = new Point(e.getX(),e.getY());
+				frameTemp = new Point(e.getX(),e.getY());
 				isDragged = true;
 				if(e.getY() < 500)
 					setCursor(new Cursor(Cursor.MOVE_CURSOR));
@@ -190,9 +172,9 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 			public void mouseDragged(MouseEvent e) {
 				if(e.getY() < 500){
 					if(isDragged) {
-						frame_loc = new Point(getLocation().x+e.getX()-frame_temp.x,
-								getLocation().y+e.getY()-frame_temp.y);
-						setLocation(frame_loc);
+						frameLoc = new Point(getLocation().x+e.getX()-frameTemp.x,
+								getLocation().y+e.getY()-frameTemp.y);
+						setLocation(frameLoc);
 					}
 				}
 			}
@@ -214,16 +196,14 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 	public JPanel myFriendsPanel() {
 		// my friends panel
 		userPanel = new JPanel(new BorderLayout());
-		String  userStr = " My friends list     ";	
+		String  userStr = " My Friend List";	
 		JLabel userLabel = new JLabel(userStr, JLabel.CENTER);
 		userPanel.add(userLabel, BorderLayout.NORTH);
 		
-		userLabel.setFont(new Font("TimeNewRomes", Font.PLAIN, 16));
-
-		String[] noClientsYet = {"No friends yet"};
+		userLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+		String[] noClientsYet = {"Empty friend list"};
 		setClientPanel(noClientsYet);
 		
-		userPanel.setBorder(blankBorder);
 		userPanel.setBounds(20, 50, 160, 220);
 		return userPanel;
 	}
@@ -231,17 +211,15 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 	public JPanel myGroupsPanel() {
 		// my groups panel
 		userPanel = new JPanel(new BorderLayout());
-		String  groupStr = " Your Groups List     ";
+		String  groupStr = "My Group List";
 		
 		JLabel groupLabel = new JLabel(groupStr, JLabel.CENTER);
-		userPanel.add(groupLabel, BorderLayout.NORTH);	
-		groupLabel.setFont(new Font("TimeNewRomes", Font.PLAIN, 16));
-
-		String[] noClientsYet = {"No groups yet"};
+		userPanel.add(groupLabel, BorderLayout.NORTH);
+		
+		groupLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+		String[] noClientsYet = {"Empty group list"};
 		setClientPanel(noClientsYet);
-
-		clientPanel.setFont(meiryoFont);		
-		userPanel.setBorder(blankBorder);
+	
 		userPanel.setBounds(20, 300, 160, 110);
 		return userPanel;	
 	}
@@ -253,15 +231,15 @@ public class ClientChatRoom extends JFrame implements ActionListener{
         for(String s : currClients){
         	listModel.addElement(s);
         }
-        if(currClients.length > 1){
+/*        if(currClients.length > 1){
         	privateMsgButton.setEnabled(true);
-        }
+        }*/
         
         //Create the list and put it in a scroll pane.
         list = new JList<String>(listModel);
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         list.setVisibleRowCount(8);
-        list.setFont(meiryoFont);
+        list.setFont(msgFont);
         JScrollPane listScrollPane = new JScrollPane(list);
 
         clientPanel.add(listScrollPane, BorderLayout.CENTER);
@@ -281,16 +259,20 @@ public class ClientChatRoom extends JFrame implements ActionListener{
 		}
 		// find online user
 		if(e.getSource() == findFriendsButton){
-			this.dispose();
 			new ClientSearchFriendGUI();
 		}
 		// find groups
 		if(e.getSource() == findGroupsButton){
-
+			new ClientSearchGroupGUI();
 		}
 		// logout
 		// jump to the login page
 		if(e.getSource() == logoutButton){
+			/*
+			 * 现在的设定是登出回到login界面
+			 * 如果这个设定没问题 这里可能要更新用户状态：离线
+			 * 
+			 * */
 			this.dispose();
 			new ClientLoginGUI();
 		}

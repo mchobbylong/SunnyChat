@@ -2,6 +2,7 @@ package client;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.*;
 import javax.swing.*;
@@ -11,18 +12,18 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
 	private JLabel backgroud; // background image
-	private JButton exit_btn,min_btn;// exit button and minimize button
-	private JButton register_btn;
+	private JButton exitButton,minButton;// exit button and minimize button  
+	private JButton registerButton;
 	
-	private JLabel username_label;// username label
+	private JLabel usernameLabel;// username label
 	private JTextField username;// username input field
 	private JPasswordField password;// password input field
-	private JLabel password_label;// password label
-	private JButton login_btn;// login button
+	private JLabel passwordLabel;// password label
+	private JButton loginButton;// login button
 	
 	boolean isDragged = false;// record the status of mouse
-	private Point frame_temp;// relative location of mouse
-	private Point frame_loc;// frame location
+	private Point frameTemp;// relative location of mouse
+	private Point frameLoc;// frame location
 
 	public ClientLoginGUI() {
 		// get container
@@ -31,32 +32,33 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 		c.setLayout(null);
 		
 		// minimize button
-		min_btn = new JButton(new ImageIcon("image/login/min_btn.jpg"));
-		min_btn.addActionListener(new ActionListener() {
+		minButton = new JButton(new ImageIcon("image/login/min_btn.jpg"));
+		minButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setExtendedState(JFrame.ICONIFIED);
 			}
 		});
-		min_btn.setBounds(498, 0, 30, 30);
-		c.add(min_btn);
+		minButton.setBounds(498, 0, 30, 30);
+		c.add(minButton);
 		
 		// exit button
-		exit_btn = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
-		exit_btn.addActionListener(new ActionListener() {
+		exitButton = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
+		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
-		exit_btn.setBounds(528, 0, 30, 30);
-		c.add(exit_btn);
+		exitButton.setBounds(528, 0, 30, 30);
+		c.add(exitButton);
 		
 		// username label
-		username_label = new JLabel("Username:");
-		username_label.setForeground(Color.orange);
-		username_label.setBounds(85,245,100,25);
-		c.add(username_label);
+		usernameLabel = new JLabel("Username:");
+		usernameLabel.setForeground(Color.orange);
+		usernameLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+		usernameLabel.setBounds(85,245,100,25);
+		c.add(usernameLabel);
 				
 		// username input field
 		username = new JTextField();
@@ -64,10 +66,11 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 		c.add(username);
 		
 		// password label
-		password_label = new JLabel("Password:");
-		password_label.setForeground(Color.orange);
-		password_label.setBounds(85,280,100,25);
-		c.add(password_label);
+		passwordLabel = new JLabel("Password:");
+		passwordLabel.setForeground(Color.orange);
+		passwordLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+		passwordLabel.setBounds(85,280,100,25);
+		c.add(passwordLabel);
 				
 		// password input field
 		password = new JPasswordField();
@@ -75,16 +78,17 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 		c.add(password);
 		
 		// login button
-		login_btn = new JButton(new ImageIcon("image/login/login_btn.png"));
-		login_btn.setBounds(197,400,164,36);
-		login_btn.addActionListener(this);
-		c.add(login_btn);
+		loginButton = new JButton(new ImageIcon("image/login/login_btn.png"));
+		loginButton.setBounds(197,400,164,36);
+		loginButton.addActionListener(this);
+		c.add(loginButton);
 		
-		register_btn = new JButton(new ImageIcon("image/login/register.jpg"));
-		register_btn.setForeground(Color.orange);
-		register_btn.setBounds(150,490,265,25);
-		register_btn.addActionListener(this);
-		c.add(register_btn);
+		// button for jumping to the register window
+		registerButton = new JButton(new ImageIcon("image/login/register.jpg"));
+		registerButton.setForeground(Color.orange);
+		registerButton.setBounds(150,490,265,25);
+		registerButton.addActionListener(this);
+		c.add(registerButton);
 		
 		// add listener to the mouse for dragging
 		this.addMouseListener(new MouseAdapter() {
@@ -95,7 +99,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 			}
 			@Override
 			public void mousePressed(MouseEvent e) {
-				frame_temp = new Point(e.getX(),e.getY());
+				frameTemp = new Point(e.getX(),e.getY());
 				isDragged = true;
 				if(e.getY() < 578)
 					setCursor(new Cursor(Cursor.MOVE_CURSOR));
@@ -106,9 +110,9 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 			public void mouseDragged(MouseEvent e) {
 				if(e.getY() < 578){
 					if(isDragged) {
-						frame_loc = new Point(getLocation().x+e.getX()-frame_temp.x,
-								getLocation().y+e.getY()-frame_temp.y);
-						setLocation(frame_loc);
+						frameLoc = new Point(getLocation().x+e.getX()-frameTemp.x,
+								getLocation().y+e.getY()-frameTemp.y);
+						setLocation(frameLoc);
 					}
 				}
 			}
@@ -129,7 +133,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == login_btn){ // µã»÷µÇÂ¼
+        if(e.getSource() == loginButton){ // µã»÷µÇÂ¼
         	String account = username.getText().trim(); // get account
         	String pw = new String(password.getPassword());// get password
         	
@@ -153,7 +157,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
         }
         
         // jump to the register window
-        if(e.getSource() == register_btn) {
+        if(e.getSource() == registerButton) {
         	this.dispose();
         	new ClientRegisterGUI();
         }

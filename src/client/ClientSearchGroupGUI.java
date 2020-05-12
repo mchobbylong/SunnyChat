@@ -6,28 +6,33 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.*;
+import java.text.ParseException;
+
 import javax.swing.*;
 
 
-public class ClientSearchFriendGUI extends JFrame implements ActionListener {
+public class ClientSearchGroupGUI extends JFrame implements ActionListener {
 	
 	private static final long serialVersionUID = 1L;
 
 	private JLabel backgroud; // background image
 	private JLabel searchFriend;// username label
 	private JButton exitButton,minButton;// exit button and minimize button   
-	private JButton addButton;// exit button and minimize button   
+	private JButton addButton;// exit button and minimize button
+	private JTextField groupNumber; // group number
 	// online users list
-	private JPanel onlineList;
-    private DefaultListModel<String> listModel;
-    private JList<String> list;
-    protected JPanel clientPanel, userPanel;
-    
+	private JPanel onlineList; 
+	private DefaultListModel<String> listModel;
+    private JList<String> list;  	
+	protected JPanel clientPanel, userPanel;
+	
 	boolean isDragged = false;// record the status of mouse
 	private Point frameTemp;// relative location of mouse
 	private Point frameLoc;// frame location
-	
-	public ClientSearchFriendGUI() {
+ 
+    
+    
+	public ClientSearchGroupGUI() {
 		// get container
 		Container c = this.getContentPane();
 		// set the layout
@@ -51,24 +56,41 @@ public class ClientSearchFriendGUI extends JFrame implements ActionListener {
 		c.add(exitButton);
 		
 		// search friend label
-		searchFriend = new JLabel("Current Online User List:");
+		searchFriend = new JLabel("Input your group number:");
 		searchFriend.setForeground(Color.gray);
-		searchFriend.setFont(new Font("TimeNewRomes", Font.BOLD, 22));
+		searchFriend.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
 		searchFriend.setBounds(20,20,500,22);
 		c.add(searchFriend);
 		
-		// online lists
-		onlineList = new JPanel(new BorderLayout());
-		String[] noClientsYet = {"No online friends now."};
-		setClientPanel(noClientsYet);
-		onlineList.setBounds(20, 50, 460, 220);
-		c.add(onlineList);
-		
-		
+		// group number input field: only allows number
+		groupNumber = new JFormattedTextField(new java.text.DecimalFormat("#0"));
+		groupNumber.setMaximumSize(new java.awt.Dimension(50, 21));
+		groupNumber.setMinimumSize(new java.awt.Dimension(50, 21));
+		groupNumber.setPreferredSize(new java.awt.Dimension(50, 21));
+		groupNumber.setBounds(175,150,150,25);
+		groupNumber.addKeyListener(new java.awt.event.KeyAdapter() {
+        public void keyReleased(java.awt.event.KeyEvent evt) {
+               String old = groupNumber.getText();
+               JFormattedTextField.AbstractFormatter formatter = ((JFormattedTextField) groupNumber).getFormatter();
+               if (!old.equals("")) { 
+                   if (formatter != null) {
+                       String str = groupNumber.getText();
+                       try {
+                           long page = (Long) formatter.stringToValue(str);
+                           groupNumber.setText(page + "");
+                       } catch (ParseException pe) {
+                    	   groupNumber.setText(null);
+                       }
+                   }
+               }
+           }
+        });
+		c.add(groupNumber);
+			
 		// send button
-		addButton = new JButton(new ImageIcon("image/search/add_btn.png"));
+		addButton = new JButton(new ImageIcon("image/search/join_btn.jpg"));
 		addButton.addActionListener(this);
-		addButton.setBounds(380, 280, 100, 24);
+		addButton.setBounds(200, 200, 100, 24);
 		c.add(addButton);
 				
 		// add listener to the mouse for dragging
@@ -102,8 +124,7 @@ public class ClientSearchFriendGUI extends JFrame implements ActionListener {
 		// Backgroud image
 		backgroud = new JLabel(new ImageIcon("image/search/searchPage.jpg"));
 		backgroud.setBounds(0,0,500,700);
-		c.add(backgroud);		
-		
+		c.add(backgroud);
 		
 		this.setIconImage(new ImageIcon("image/brown.jpg").getImage());// window icon
 		this.setSize(500,700);// window size
@@ -119,12 +140,19 @@ public class ClientSearchFriendGUI extends JFrame implements ActionListener {
     		this.dispose();
     	}
     	if(e.getSource() == addButton) {
-    		 /*点击添加后的action 需补充*/
+    		String groupNum = groupNumber.getText().trim(); // get group number
+    		if (groupNum != "") {
+    			JOptionPane.showMessageDialog(this, "You must input a group number :(", "Prompt", JOptionPane.WARNING_MESSAGE);
+    		}
+    		else {
+    			int groupID = Integer.parseInt(groupNum); 
+    			/*查找需补充*/
+    		}		
     	}
     }
 
     public static void main(String[] args) {
-        new ClientSearchFriendGUI();
+        new ClientSearchGroupGUI();
     }
     
     // 用于添加scroll pane的内容 需要时可调用 是遗留财产
