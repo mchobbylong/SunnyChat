@@ -3,6 +3,10 @@ package server;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import common.InvalidSessionException;
+import common.User;
+import client.ChatClient3IF;
+
 /**
  * Server RMI interface
  *
@@ -10,14 +14,11 @@ import java.rmi.RemoteException;
  *
  */
 public interface ChatServerIF extends Remote {
+	public User login(String userName, String password, ChatClient3IF client) throws RemoteException;
 
-	public int login(String userName, String password) throws RemoteException;
+	public void updateChat(String userName, String chatMessage) throws RemoteException, InvalidSessionException;
 
-	public void updateChat(String userName, String chatMessage) throws RemoteException;
+	public void leaveChat(String userName) throws RemoteException, InvalidSessionException;
 
-	public void registerListener(String[] details) throws RemoteException;
-
-	public void leaveChat(String userName) throws RemoteException;
-
-	public void sendPM(int[] privateGroup, String privateMessage) throws RemoteException;
+	public void sendPM(int[] privateGroup, String privateMessage) throws RemoteException, InvalidSessionException;
 }

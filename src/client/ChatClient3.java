@@ -1,11 +1,10 @@
 package client;
 
-import java.net.MalformedURLException;
-import java.rmi.ConnectException;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.swing.JOptionPane;
 
@@ -16,107 +15,62 @@ import common.*;
 public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	private static final long serialVersionUID = 7468891722773409712L;
 
-	ClientRMIGUI gui;
+	ClientRMIGUI chatGUI;
+	User me;
+	private ReadWriteLock guiLock = new ReentrantReadWriteLock();
 	private String hostName = "localhost";
 	private String serviceName = "GroupChatService";
-	private String clientServiceName;
-	private String name;
-	private User me;
 	protected ChatServerIF serverIF;
 	protected boolean connectionProblem = false;
 
-	public ChatClient3() throws RemoteException {
+	public ChatClient3() throws Exception {
 		super();
-		try {
-			this.serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		} catch (ConnectException e) {
-			JOptionPane.showMessageDialog(gui.frame, "The server is unavailable, please try it later",
-					"Connection Error", JOptionPane.ERROR_MESSAGE);
-
-			connectionProblem = true;
-			e.printStackTrace();
-		} catch (NotBoundException | MalformedURLException e) {
-			connectionProblem = true;
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * class constructor, note may also use an overloaded constructor with a port no
-	 * passed in argument to super
-	 *
-	 * @throws RemoteException
-	 */
-	public ChatClient3(ClientRMIGUI aChatGUI, String userName) throws RemoteException {
-		super();
-		this.gui = aChatGUI;
-		this.name = userName;
-		this.clientServiceName = "ClientListenService_" + userName;
-		try {
-			this.serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		} catch (ConnectException e) {
-			JOptionPane.showMessageDialog(gui.frame, "The server is unavailable, please try it later",
-					"Connection Error", JOptionPane.ERROR_MESSAGE);
-
-			connectionProblem = true;
-			e.printStackTrace();
-		} catch (NotBoundException | MalformedURLException e) {
-			connectionProblem = true;
-			e.printStackTrace();
-		}
+		serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
 	}
 
 	public boolean login(String userName, String password) {
+		guiLock.writeLock().lock();
+		boolean success = false;
 		try {
-			int uid = this.serverIF.login(userName, password);
-			if (uid != 0) {
-				me = new User(uid, userName);
-				return true;
+			me = serverIF.login(userName, password, this);
+			if (me.uid > 0) {
+				chatGUI = new ClientRMIGUI(this);
+				success = true;
 			}
 		} catch (RemoteException e) {
 			e.printStackTrace();
+		} finally {
+			guiLock.writeLock().unlock();
 		}
-		return false;
+		return success;
 	}
 
-	/**
-	 * Register our own listening service/interface lookup the server RMI interface,
-	 * then send our details
-	 *
-	 * @throws RemoteException
-	 */
-	public void startClient() throws RemoteException {
-		String[] details = { name, hostName, clientServiceName };
-
+	public void updateChat(String message) {
 		try {
-			Naming.rebind("rmi://" + hostName + "/" + clientServiceName, this);
-			serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
-		} catch (ConnectException e) {
-			JOptionPane.showMessageDialog(gui.frame, "The server seems to be unavailable\nPlease try later",
-					"Connection problem", JOptionPane.ERROR_MESSAGE);
-			connectionProblem = true;
-			e.printStackTrace();
-		} catch (NotBoundException | MalformedURLException me) {
-			connectionProblem = true;
-			me.printStackTrace();
+			serverIF.updateChat(me.userName, message);
+		} catch (RemoteException | InvalidSessionException e) {
+			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
 		}
-		if (!connectionProblem) {
-			registerWithServer(details);
-		}
-		System.out.println("Client Listen RMI Server is running...\n");
 	}
 
-	/**
-	 * pass our username, hostname and RMI service name to the server to register
-	 * out interest in joining the chat
-	 *
-	 * @param details
-	 */
-	public void registerWithServer(String[] details) {
+	public void sendPM(int[] privateList, String message) {
 		try {
-			serverIF.registerListener(details);
-		} catch (Exception e) {
-			e.printStackTrace();
+			serverIF.sendPM(privateList, message);
+		} catch (RemoteException | InvalidSessionException e) {
+			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+		}
+	}
+
+	public void logout() {
+		try {
+			serverIF.leaveChat(me.userName);
+		} catch (RemoteException e) {
+			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+		} catch (InvalidSessionException e) {
+			// Do nothing, since the client is closing
 		}
 	}
 
@@ -128,9 +82,14 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	@Override
 	public void messageFromServer(String message) throws RemoteException {
 		System.out.println(message);
-		gui.textArea.append(message);
-		// make the gui display the last appended text, ie scroll to bottom
-		gui.textArea.setCaretPosition(gui.textArea.getDocument().getLength());
+		guiLock.readLock().lock();
+		try {
+			chatGUI.textArea.append(message);
+			// make the gui display the last appended text, ie scroll to bottom
+			chatGUI.textArea.setCaretPosition(chatGUI.textArea.getDocument().getLength());
+		} finally {
+			guiLock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -138,14 +97,29 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	 */
 	@Override
 	public void updateUserList(String[] currentUsers) throws RemoteException {
-
-		if (currentUsers.length < 2) {
-			gui.privateMsgButton.setEnabled(false);
+		guiLock.readLock().lock();
+		try {
+			if (currentUsers.length < 2) {
+				chatGUI.privateMsgButton.setEnabled(false);
+			}
+			chatGUI.userPanel.remove(chatGUI.clientPanel);
+			chatGUI.setClientPanel(currentUsers);
+			chatGUI.clientPanel.repaint();
+			chatGUI.clientPanel.revalidate();
+		} finally {
+			guiLock.readLock().unlock();
 		}
-		gui.userPanel.remove(gui.clientPanel);
-		gui.setClientPanel(currentUsers);
-		gui.clientPanel.repaint();
-		gui.clientPanel.revalidate();
+	}
+
+	public static void main(String[] args) {
+		try {
+			ChatClient3 client = new ChatClient3();
+			new ClientLoginGUI(client);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "The server is currently unavailable, please try again later!", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+		}
 	}
 
 }// end class

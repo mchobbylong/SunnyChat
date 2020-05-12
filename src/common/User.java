@@ -1,6 +1,11 @@
 package common;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
+	private static final long serialVersionUID = -4128101032767815161L;
+
+	public long sessionId;
 	public int uid;
 	public String userName;
 

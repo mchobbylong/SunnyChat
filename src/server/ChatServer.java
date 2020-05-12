@@ -1,26 +1,35 @@
 package server;
 
-import java.net.MalformedURLException;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Date;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
 
 import client.ChatClient3IF;
 import server.exception.ObjectNotFoundException;
 import server.model.*;
+import common.*;
 
 public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	String line = "---------------------------------------------\n";
 	private Vector<Chatter> chatters;
 	private static final long serialVersionUID = 1L;
 
+	private Hashtable<Integer, Chatter> onlineUsers;
+
+	// asynchronized thread pool
+	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
+
 	// Constructor
 	public ChatServer() throws RemoteException {
 		super();
 		chatters = new Vector<Chatter>(10, 1);
+		onlineUsers = new Hashtable<>();
 	}
 
 	// -----------------------------------------------------------
@@ -39,8 +48,8 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		}
 
 		try {
-			ChatServerIF hello = new ChatServer();
-			Naming.rebind("rmi://" + hostName + "/" + serviceName, hello);
+			ChatServerIF server = new ChatServer();
+			Naming.rebind("rmi://" + hostName + "/" + serviceName, server);
 			System.out.println("Group Chat RMI Server is running...");
 		} catch (Exception e) {
 			System.out.println("Server had problems starting");
@@ -65,14 +74,6 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	 */
 
 	/**
-	 * Return a message to client
-	 */
-	public String sayHello(String ClientName) throws RemoteException {
-		System.out.println(ClientName + " sent a message");
-		return "Hello " + ClientName + " from group chat server";
-	}
-
-	/**
 	 * Send a string ( the latest post, mostly ) to all connected clients
 	 */
 	public void updateChat(String name, String nextPost) throws RemoteException {
@@ -81,53 +82,22 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	}
 
 	/**
-	 * Receive a new client and display details to the console send on to register
-	 * method
-	 */
-	@Override
-	public void registerListener(String[] details) throws RemoteException {
-		System.out.println(new Date(System.currentTimeMillis()));
-		System.out.println(details[0] + " has joined the chat session");
-		System.out.println(details[0] + "'s hostname : " + details[1]);
-		System.out.println(details[0] + "'sRMI service : " + details[2]);
-		registerChatter(details);
-	}
-
-	/**
-	 * register the clients interface and store it in a reference for future
-	 * messages to be sent to, ie other members messages of the chat session. send a
-	 * test message for confirmation / test connection
-	 *
-	 * @param details
-	 */
-	private void registerChatter(String[] details) {
-		try {
-			ChatClient3IF nextClient = (ChatClient3IF) Naming.lookup("rmi://" + details[1] + "/" + details[2]);
-
-			chatters.addElement(new Chatter(details[0], nextClient));
-
-			nextClient.messageFromServer("[Server] : Hello " + details[0] + " you are now free to chat.\n");
-
-			sendToAll("[Server] : " + details[0] + " has joined the group.\n");
-
-			updateUserList();
-		} catch (RemoteException | MalformedURLException | NotBoundException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * Update all clients by remotely invoking their updateUserList RMI method
 	 */
 	private void updateUserList() {
-		String[] currentUsers = getUserList();
-		for (Chatter c : chatters) {
-			try {
-				c.getClient().updateUserList(currentUsers);
-			} catch (RemoteException e) {
-				e.printStackTrace();
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				String[] currentUsers = getUserList();
+				for (Chatter c : chatters) {
+					try {
+						c.getClient().updateUserList(currentUsers);
+					} catch (RemoteException e) {
+						System.out.println("Warning: failed to update user list of " + c.name);
+					}
+				}
+				return null;
 			}
-		}
+		});
 	}
 
 	/**
@@ -150,13 +120,18 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	 * @param newMessage
 	 */
 	public void sendToAll(String newMessage) {
-		for (Chatter c : chatters) {
-			try {
-				c.getClient().messageFromServer(newMessage);
-			} catch (RemoteException e) {
-				e.printStackTrace();
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				for (Chatter c : chatters) {
+					try {
+						c.getClient().messageFromServer(newMessage);
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+				}
+				return null;
 			}
-		}
+		});
 	}
 
 	/**
@@ -185,20 +160,40 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	 */
 	@Override
 	public void sendPM(int[] privateGroup, String privateMessage) throws RemoteException {
-		Chatter pc;
-		for (int i : privateGroup) {
-			pc = chatters.elementAt(i);
-			pc.getClient().messageFromServer(privateMessage);
-		}
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				Chatter pc;
+				for (int i : privateGroup) {
+					pc = chatters.elementAt(i);
+					try {
+						pc.getClient().messageFromServer(privateMessage);
+					} catch (RemoteException e) {
+						System.out.println("Warning: failed to send message to " + pc.name);
+					}
+				}
+				return null;
+			}
+		});
 	}
 
 	@Override
-	public int login(String userName, String password) throws RemoteException {
+	public User login(String userName, String password, ChatClient3IF client) throws RemoteException {
 		try {
-			UserModel user = new UserModel(userName, password);
-			return user.uid;
+			UserModel userModel = new UserModel(userName, password);
+
+			// Add to online user list
+			onlineUsers.put(userModel.uid, new Chatter(userName, client));
+			chatters.add(new Chatter(userName, client));
+
+			// announce to all chatters (asynchronized)
+			updateUserList();
+			sendToAll("[Server] : " + userName + " has joined the group.\n");
+
+			User user = new User(userModel.uid, userName);
+			Session.createSession(user);
+			return user;
 		} catch (ObjectNotFoundException e) {
-			return 0;
+			return new User(0, userName);
 		}
 	}
 

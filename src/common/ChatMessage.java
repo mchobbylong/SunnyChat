@@ -1,9 +1,12 @@
 package common;
 
 import java.util.Date;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 
-public class ChatMessage {
+public class ChatMessage implements Serializable {
+	private static final long serialVersionUID = -7166042503072155917L;
+
 	public int cid;
 	public int fromUID;
 	public String fromName;
@@ -17,6 +20,7 @@ public class ChatMessage {
 		this.message = message;
 		this.time = time;
 	}
+
 	public ChatMessage(int cid, int fromUID, String fromName, String message) {
 		this(cid, fromUID, fromName, message, getCurrentTime());
 	}
