@@ -45,6 +45,18 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		return success;
 	}
 
+	public boolean register(String userName, String password) {
+		try {
+			int uid = serverIF.register(userName, password);
+			if (uid != 0) {
+				return true;
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	public void updateChat(String message) {
 		try {
 			serverIF.updateChat(me.userName, message);

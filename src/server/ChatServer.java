@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
 
 import client.ChatClient3IF;
+import server.exception.DuplicatedObjectException;
 import server.exception.ObjectNotFoundException;
 import server.model.*;
 import common.*;
@@ -195,6 +196,19 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		} catch (ObjectNotFoundException e) {
 			return new User(0, userName);
 		}
+	}
+	
+	@Override
+	public int register(String userName, String password) throws RemoteException {
+			UserModel user = new UserModel();
+			user.userName = userName;
+			user.password = password;
+			try {
+				user.create();
+				return user.uid;
+			} catch (DuplicatedObjectException e) {
+				return 0;
+			}
 	}
 
 }// END CLASS

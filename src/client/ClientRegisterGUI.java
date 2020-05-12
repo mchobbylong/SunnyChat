@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 public class ClientRegisterGUI extends JFrame implements ActionListener {
@@ -120,7 +121,7 @@ public class ClientRegisterGUI extends JFrame implements ActionListener {
 			}
 		});
 
-		// Backgroud image
+		// Background image
 		backgroud = new JLabel(new ImageIcon("image/register/register.jpg"));
 		backgroud.setBounds(0, 0, 558, 550);
 		c.add(backgroud);
@@ -139,27 +140,21 @@ public class ClientRegisterGUI extends JFrame implements ActionListener {
 			String pw = new String(password.getPassword());// get password
 
 			if (!"".equals(account) && !"".equals(pw)) { // the account and the password are not empty
-				// prompt for success
-				JOptionPane.showMessageDialog(this, "Successfully registered :D", "Prompt", JOptionPane.PLAIN_MESSAGE);
+				if (client.register(account, pw)) { // prompt for success
+					JOptionPane.showMessageDialog(this, "Successfully registered :D", "Prompt",
+							JOptionPane.PLAIN_MESSAGE);
+					this.dispose();
+					new ClientLoginGUI(client);
+				} else {
+					JOptionPane.showMessageDialog(this, "Your username has been used:(", "Prompt",
+							JOptionPane.WARNING_MESSAGE);
+				}
 			} else {
 				JOptionPane.showMessageDialog(this, "You must fill all the information. :(", "Prompt",
 						JOptionPane.WARNING_MESSAGE);
 			}
-			/*
-			 *
-			 *
-			 * �˴���Ҫ����ע��ʧ�ܵ�ԭ��
-			 *
-			 *
-			 *
-			 */
-			// ����comment������Ǵ�����Ϣ����
-			// prompt for failure
-			/*
-			 * JOptionPane.showMessageDialog(this, "��д������Ϣ", "Prompt",
-			 * JOptionPane.WARNING_MESSAGE);
-			 */
 		}
+
 		// jump to the login window
 		if (e.getSource() == jump_to_login_btn) {
 			this.dispose();
