@@ -53,22 +53,22 @@ public class ClientSearchFriendGUI extends JFrame implements ActionListener {
 		// search friend label
 		searchFriend = new JLabel("Current Online User List:");
 		searchFriend.setForeground(Color.gray);
-		searchFriend.setFont(new Font("TimeNewRomes", Font.BOLD, 22));
-		searchFriend.setBounds(20,20,500,22);
+		searchFriend.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
+		searchFriend.setBounds(20,20,500,50);
 		c.add(searchFriend);
 		
 		// online lists
 		onlineList = new JPanel(new BorderLayout());
 		String[] noClientsYet = {"No online friends now."};
 		setClientPanel(noClientsYet);
-		onlineList.setBounds(20, 50, 460, 220);
+		onlineList.setBounds(20, 65, 460, 220);
 		c.add(onlineList);
 		
 		
 		// send button
 		addButton = new JButton(new ImageIcon("image/search/add_btn.png"));
 		addButton.addActionListener(this);
-		addButton.setBounds(380, 280, 100, 24);
+		addButton.setBounds(380, 290, 100, 24);
 		c.add(addButton);
 				
 		// add listener to the mouse for dragging

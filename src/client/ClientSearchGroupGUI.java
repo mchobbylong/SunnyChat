@@ -59,7 +59,7 @@ public class ClientSearchGroupGUI extends JFrame implements ActionListener {
 		searchFriend = new JLabel("Input your group number:");
 		searchFriend.setForeground(Color.gray);
 		searchFriend.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
-		searchFriend.setBounds(20,20,500,22);
+		searchFriend.setBounds(20,20,500,50);
 		c.add(searchFriend);
 		
 		// group number input field: only allows number
