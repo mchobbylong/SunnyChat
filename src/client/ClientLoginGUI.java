@@ -30,7 +30,6 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 		// set the layout
 		c.setLayout(null);
 		
-		
 		// minimize button
 		min_btn = new JButton(new ImageIcon("image/login/min_btn.jpg"));
 		min_btn.addActionListener(new ActionListener() {
@@ -40,7 +39,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 			}
 		});
 		min_btn.setBounds(498, 0, 30, 30);
-		this.add(min_btn);
+		c.add(min_btn);
 		
 		// exit button
 		exit_btn = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
@@ -143,7 +142,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
             	 * 
             	 */
             	this.dispose(); // 登录页面消失
-            	new ClientRMIGUI(); // 创建新GUI页面: 聊天室
+            	new ClientChatRoom(); // 创建新GUI页面: 聊天室
         	} else if ("".equals(account)) {
         		JOptionPane.showMessageDialog(this, "You have not input your username:(", "Prompt", JOptionPane.WARNING_MESSAGE);
         	} else if ("".equals(pw)) {
