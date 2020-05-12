@@ -40,7 +40,7 @@ public class UserModel {
 	 * @throws ObjectNotFoundException
 	 */
 	public UserModel(String userName, String password) throws ObjectNotFoundException {
-		String sql = String.format("select uid, username, password from user where username='%s' and password='%s'",
+		String sql = String.format("select uid, username, password from user where username ='%s' and password ='%s'",
 				userName, password);
 		HashMap<String, Object> row = DatabaseHelper.queryFirst(sql);
 		if (row != null) {
@@ -61,7 +61,8 @@ public class UserModel {
 		// Check duplication first
 		String sql = String.format("select count(*) as count from user where username='%s'", userName);
 		HashMap<String, Object> row = DatabaseHelper.queryFirst(sql);
-		if ((int) row.get("count") > 0) {
+		Number count = (Number)row.get("count");
+		if (count.intValue() > 0) {
 			throw new DuplicatedObjectException(String.format("User with name %s already exists.", userName));
 		}
 

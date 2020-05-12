@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import client.ChatClient3IF;
+import server.exception.DuplicatedObjectException;
 import server.exception.ObjectNotFoundException;
 import server.model.*;
 
@@ -200,6 +201,19 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		} catch (ObjectNotFoundException e) {
 			return 0;
 		}
+	}
+	
+	@Override
+	public int register(String userName, String password) throws RemoteException {
+			UserModel user = new UserModel();
+			user.userName = userName;
+			user.password = password;
+			try {
+				user.create();
+				return user.uid;
+			} catch (DuplicatedObjectException e) {
+				return 0;
+			}
 	}
 
 }// END CLASS

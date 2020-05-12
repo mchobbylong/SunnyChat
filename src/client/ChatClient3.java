@@ -78,6 +78,18 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		}
 		return false;
 	}
+	
+	public boolean register(String userName, String password) {
+		try {
+			int uid = this.serverIF.register(userName, password);
+			if (uid != 0) {
+				return true;
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	/**
 	 * Register our own listening service/interface lookup the server RMI interface,

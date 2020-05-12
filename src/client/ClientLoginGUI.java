@@ -117,7 +117,7 @@ public class ClientLoginGUI extends JFrame implements ActionListener {
 			}
 		});
 		
-		// Backgroud image
+		// Background image
 		backgroud = new JLabel(new ImageIcon("image/login/login.jpg"));
 		backgroud.setBounds(0,0,558,578);
 		c.add(backgroud);		
