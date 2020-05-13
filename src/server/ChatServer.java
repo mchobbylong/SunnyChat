@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Date;
 import java.util.Vector;
-import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
@@ -15,13 +14,14 @@ import server.exception.DuplicatedObjectException;
 import server.exception.ObjectNotFoundException;
 import server.model.*;
 import common.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	String line = "---------------------------------------------\n";
 	private Vector<Chatter> chatters;
 	private static final long serialVersionUID = 1L;
 
-	private Hashtable<Integer, Chatter> onlineUsers;
+	private ConcurrentHashMap<Integer, Chatter> onlineUsers;
 
 	// asynchronized thread pool
 	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
@@ -30,7 +30,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	public ChatServer() throws RemoteException {
 		super();
 		chatters = new Vector<Chatter>(10, 1);
-		onlineUsers = new Hashtable<>();
+		onlineUsers = new ConcurrentHashMap<>();
 	}
 
 	// -----------------------------------------------------------
@@ -66,19 +66,6 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-	}
-
-	// -----------------------------------------------------------
-	/*
-	 * REMOTE METHODS
-	 */
-
-	/**
-	 * Send a string ( the latest post, mostly ) to all connected clients
-	 */
-	public void updateChat(String name, String nextPost) throws RemoteException {
-		String message = name + " : " + nextPost + "\n";
-		sendToAll(message);
 	}
 
 	/**
@@ -132,6 +119,19 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 				return null;
 			}
 		});
+	}
+
+	// -----------------------------------------------------------
+	/*
+	 * REMOTE METHODS
+	 */
+
+	/**
+	 * Send a string ( the latest post, mostly ) to all connected clients
+	 */
+	public void updateChat(String name, String nextPost) throws RemoteException {
+		String message = name + " : " + nextPost + "\n";
+		sendToAll(message);
 	}
 
 	/**
