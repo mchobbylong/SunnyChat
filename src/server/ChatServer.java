@@ -38,7 +38,6 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	 * LOCAL METHODS
 	 */
 	public static void main(String[] args) {
-		DatabaseHelper.init();
 		startRMIRegistry();
 		String hostName = "localhost";
 		String serviceName = "GroupChatService";
@@ -197,18 +196,18 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 			return new User(0, userName);
 		}
 	}
-	
+
 	@Override
 	public int register(String userName, String password) throws RemoteException {
-			UserModel user = new UserModel();
-			user.userName = userName;
-			user.password = password;
-			try {
-				user.create();
-				return user.uid;
-			} catch (DuplicatedObjectException e) {
-				return 0;
-			}
+		UserModel user = new UserModel();
+		user.userName = userName;
+		user.password = password;
+		try {
+			user.create();
+			return user.uid;
+		} catch (DuplicatedObjectException e) {
+			return 0;
+		}
 	}
 
 }// END CLASS

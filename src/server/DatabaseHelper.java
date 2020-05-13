@@ -17,10 +17,7 @@ public class DatabaseHelper {
 	private static String databaseName = "chat";
 	private static String connectionParam = "&minPoolSize=2&maxPoolSize=12";
 
-	/**
-	 * Initialize a database pool.
-	 */
-	public static void init() {
+	static {
 		String url = String.format("jdbc:mariadb://%s:%s/%s?user=%s&password=%s%s", serverAddress, serverPort,
 				databaseName, userName, password, connectionParam);
 		pool = new MariaDbPoolDataSource(url);
