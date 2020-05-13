@@ -15,7 +15,7 @@ import common.*;
 public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	private static final long serialVersionUID = 7468891722773409712L;
 
-	ClientRMIGUI chatGUI;
+	ClientChatRoom chatGUI;
 	User me;
 	private ReadWriteLock guiLock = new ReentrantReadWriteLock();
 	private String hostName = "localhost";
@@ -34,7 +34,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		try {
 			me = serverIF.login(userName, password, this);
 			if (me.uid > 0) {
-				chatGUI = new ClientRMIGUI(this);
+				chatGUI = new ClientChatRoom(this);
 				success = true;
 			}
 		} catch (RemoteException e) {
@@ -111,9 +111,6 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 	public void updateUserList(String[] currentUsers) throws RemoteException {
 		guiLock.readLock().lock();
 		try {
-			if (currentUsers.length < 2) {
-				chatGUI.privateMsgButton.setEnabled(false);
-			}
 			chatGUI.userPanel.remove(chatGUI.clientPanel);
 			chatGUI.setClientPanel(currentUsers);
 			chatGUI.clientPanel.repaint();
