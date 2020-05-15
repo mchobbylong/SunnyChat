@@ -82,7 +82,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		// message input text field
 		textField = new JTextArea();
 		textField.setFont(msgFont);
-		/* textField.setBounds(220, 50, 580, 220); */
+		textField.setLineWrap(true);
 		textField.setBounds(200, 300, 396, 180);
 		c.add(textField);
 
@@ -258,7 +258,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		// jump to the login page
 		if (e.getSource() == logoutButton) {
 			/*
-			 * ���ڵ��趨�ǵǳ��ص�login���� �������趨û���� �������Ҫ�����û�״̬������
+			 * 锟斤拷锟节碉拷锟借定锟角登筹拷锟截碉拷login锟斤拷锟斤拷 锟斤拷锟斤拷锟斤拷锟借定没锟斤拷锟斤拷 锟斤拷锟斤拷锟斤拷锟揭拷锟斤拷锟斤拷没锟阶刺拷锟斤拷锟斤拷锟�
 			 *
 			 */
 			this.dispose();
@@ -289,10 +289,10 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 					for (File file : fs) {
 						set.add(file.getName());// get the file name
 					}
-					// p.s. ���if����ɾ�� ������
+					// p.s. 锟斤拷锟絠f锟斤拷锟斤拷删锟斤拷 锟斤拷锟斤拷锟斤拷
 					if (set.contains(f.getName())) {// indicate whether the file has been existed in the system
 						JOptionPane.showMessageDialog(new JDialog(),
-								f.getName() + ":The selected file is already exist��");
+								f.getName() + ":The selected file is already exist锟斤拷");
 						return;
 					}
 					input = new FileInputStream(f);
