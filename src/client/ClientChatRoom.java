@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.HashSet;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -29,14 +31,15 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 	private JPanel textPanel;
 	private JTextArea textField;
 	private String message;
-
+	private Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
+	
 	private ChatClient3 chatClient;
 	private JList<String> list;
 	private DefaultListModel<String> listModel;
 	private JButton exitButton, minButton;// exit button and minimize button
 	private JLabel backgroud;
 	private JButton sendButton, fileButton;
-	private JButton findFriendsButton, findGroupsButton, logoutButton;
+	private JButton findFriendsButton, findGroupsButton, logoutButton, seeGroupMemberButton;
 	private Font msgFont = new Font(message, Font.PLAIN, 16);
 
 	boolean isDragged = false;// record the status of mouse
@@ -126,21 +129,32 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		// find friends button
 		findFriendsButton = new JButton(new ImageIcon("image/chatroom/friend_btn.png"));
 		findFriendsButton.addActionListener(this);
-		findFriendsButton.setBounds(20, 430, 50, 42);
+		findFriendsButton.setBounds(20, 447, 33, 33);
+		findFriendsButton.setToolTipText("Find your friend");
 		c.add(findFriendsButton);
 
 		// find groups button
 		findGroupsButton = new JButton(new ImageIcon("image/chatroom/group_btn.png"));
 		findGroupsButton.addActionListener(this);
-		findGroupsButton.setBounds(80, 430, 50, 42);
+		findGroupsButton.setToolTipText("Search a group");
+		findGroupsButton.setBounds(62, 447, 33, 33);
 		c.add(findGroupsButton);
+		
+		// see group member button
+		seeGroupMemberButton = new JButton(new ImageIcon("image/chatroom/unable_see_group_members.png"));
+		seeGroupMemberButton.addActionListener(this);
+		seeGroupMemberButton.setToolTipText("See the group member");
+		seeGroupMemberButton.setBounds(104, 447, 33, 33);
+		seeGroupMemberButton.setEnabled(false);
+		c.add(seeGroupMemberButton);
 
 		// logout button
 		logoutButton = new JButton(new ImageIcon("image/chatroom/logout_btn.png"));
 		logoutButton.addActionListener(this);
-		logoutButton.setBounds(140, 430, 40, 42);
+		logoutButton.setToolTipText("Logout");
+		logoutButton.setBounds(144, 447, 33, 33);
 		c.add(logoutButton);
-
+		
 		// add listener to the mouse for dragging
 		this.addMouseListener(new MouseAdapter() {
 			@Override
@@ -180,6 +194,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		this.setUndecorated(true);// delete the original frame give by Java
 		this.setLocationRelativeTo(null);// show in the middle of the screen
 		this.setVisible(true);
+		
 	}
 
 	public JPanel myFriendsPanel() {
@@ -209,7 +224,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		String[] noClientsYet = { "Empty group list" };
 		setClientPanel(noClientsYet);
 
-		userPanel.setBounds(20, 300, 160, 110);
+		userPanel.setBounds(20, 300, 160, 125);
 		return userPanel;
 	}
 
@@ -229,6 +244,12 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		list.setVisibleRowCount(8);
 		list.setFont(msgFont);
+		list.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				seeGroupMemberButton.setEnabled(true);
+				seeGroupMemberButton.setIcon(openEye);
+			}
+		});
 		JScrollPane listScrollPane = new JScrollPane(list);
 
 		clientPanel.add(listScrollPane, BorderLayout.CENTER);
@@ -253,6 +274,9 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		// find groups
 		if (e.getSource() == findGroupsButton) {
 			new ClientSearchGroupGUI();
+		}
+		if(e.getSource() == seeGroupMemberButton) {
+			new ClientSeeGroupMember();
 		}
 		// logout
 		// jump to the login page
