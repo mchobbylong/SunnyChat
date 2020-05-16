@@ -76,6 +76,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				chatClient.logout();
 				System.exit(0);
 			}
 		});
