@@ -1,4 +1,6 @@
 {
 	"java.checkstyle.configuration": "/google_checks.xml",
-	"files.insertFinalNewline": true
+	"files.insertFinalNewline": true,
+	"editor.formatOnSave": true,
+	"editor.formatOnPaste": true
 }

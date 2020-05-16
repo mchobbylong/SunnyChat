@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JOptionPane;
 
 import server.ChatServerIF;
-
+import server.exception.DuplicatedObjectException;
 import common.*;
 
 public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
@@ -56,15 +56,15 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		}
 		return false;
 	}
-	
+
 	public boolean joinGroup(int cid) {
 		try {
-			int uid = serverIF.joinGroup(cid, me.uid);
-			if (uid != 0) {
-				return true;
-			}
+			serverIF.joinGroup(cid, me);
+			return true;
 		} catch (RemoteException e) {
 			e.printStackTrace();
+		} catch (DuplicatedObjectException e) {
+			return false;
 		}
 		return false;
 	}

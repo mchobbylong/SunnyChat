@@ -32,7 +32,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 	private JTextArea textField;
 	private String message;
 	private Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
-	
+
 	private ChatClient3 chatClient;
 	private JList<String> list;
 	private DefaultListModel<String> listModel;
@@ -139,7 +139,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		findGroupsButton.setToolTipText("Search a group");
 		findGroupsButton.setBounds(62, 447, 33, 33);
 		c.add(findGroupsButton);
-		
+
 		// see group member button
 		seeGroupMemberButton = new JButton(new ImageIcon("image/chatroom/unable_see_group_members.png"));
 		seeGroupMemberButton.addActionListener(this);
@@ -154,7 +154,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		logoutButton.setToolTipText("Logout");
 		logoutButton.setBounds(144, 447, 33, 33);
 		c.add(logoutButton);
-		
+
 		// add listener to the mouse for dragging
 		this.addMouseListener(new MouseAdapter() {
 			@Override
@@ -194,7 +194,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		this.setUndecorated(true);// delete the original frame give by Java
 		this.setLocationRelativeTo(null);// show in the middle of the screen
 		this.setVisible(true);
-		
+
 	}
 
 	public JPanel myFriendsPanel() {
@@ -273,18 +273,15 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		}
 		// find groups
 		if (e.getSource() == findGroupsButton) {
-			new ClientSearchGroupGUI();
+			new ClientSearchGroupGUI(chatClient);
 		}
-		if(e.getSource() == seeGroupMemberButton) {
+		if (e.getSource() == seeGroupMemberButton) {
 			new ClientSeeGroupMember();
 		}
 		// logout
 		// jump to the login page
 		if (e.getSource() == logoutButton) {
-			/*
-			 * 锟斤拷锟节碉拷锟借定锟角登筹拷锟截碉拷login锟斤拷锟斤拷 锟斤拷锟斤拷锟斤拷锟借定没锟斤拷锟斤拷 锟斤拷锟斤拷锟斤拷锟揭拷锟斤拷锟斤拷没锟阶刺拷锟斤拷锟斤拷锟�
-			 *
-			 */
+			chatClient.logout();
 			this.dispose();
 			new ClientLoginGUI(chatClient);
 		}
