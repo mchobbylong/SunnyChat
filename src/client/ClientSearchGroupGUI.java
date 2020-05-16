@@ -14,6 +14,8 @@ import javax.swing.*;
 public class ClientSearchGroupGUI extends JFrame implements ActionListener {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private ChatClient3 client;
 
 	private JLabel backgroud; // background image
 	private JLabel searchFriend;// username label
@@ -121,7 +123,7 @@ public class ClientSearchGroupGUI extends JFrame implements ActionListener {
 			}
 		});
 		
-		// Backgroud image
+		// Background image
 		backgroud = new JLabel(new ImageIcon("image/search/searchPage.jpg"));
 		backgroud.setBounds(0,0,500,700);
 		c.add(backgroud);
@@ -140,13 +142,31 @@ public class ClientSearchGroupGUI extends JFrame implements ActionListener {
     		this.dispose();
     	}
     	if(e.getSource() == addButton) {
-    		String groupNum = groupNumber.getText().trim(); // get group number
-    		if (groupNum != "") {
+    		String groupNum = groupNumber.getText(); // get group number
+    		if ("".equals(groupNum)) {
     			JOptionPane.showMessageDialog(this, "You must input a group number :(", "Prompt", JOptionPane.WARNING_MESSAGE);
-    		}
-    		else {
-    			int groupID = Integer.parseInt(groupNum); 
-    			/*查找需补充*/
+    		} else {
+    			int cid = Integer.valueOf(groupNum).intValue(); 
+    			// a weird NullPointerException in line 151, try to fix it but failed:( HELP!!!
+    			
+    			/* I have already tried:
+    			 * 1.
+    			 * int cid = Interger.parseInt(groupNum);
+    			 * if (client.joinGroup(cid)) {
+    			 * 
+    			 * 2. 
+    			 * Interger cid = Interger.parseInt(groupNum);
+    			 * if (client.joinGroup(cid.intValue())) {
+    			 */
+				if (client.joinGroup(cid)) { // prompt for success
+					JOptionPane.showMessageDialog(this, "Successfully joined :D", "Prompt",
+							JOptionPane.PLAIN_MESSAGE);
+					this.dispose();
+					new ClientRMIGUI(client);
+				} else {
+					JOptionPane.showMessageDialog(this, "There is no such group:(", "Prompt",
+							JOptionPane.WARNING_MESSAGE);
+				}
     		}		
     	}
     }
@@ -155,7 +175,7 @@ public class ClientSearchGroupGUI extends JFrame implements ActionListener {
         new ClientSearchGroupGUI();
     }
     
-    // 用于添加scroll pane的内容 需要时可调用 是遗留财产
+    // To add the scroll pane when needed
     public void setClientPanel(String[] currClients) {  	
     	clientPanel = new JPanel(new BorderLayout());
         listModel = new DefaultListModel<String>();

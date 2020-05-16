@@ -326,10 +326,9 @@ public class ClientRMIGUI extends JFrame implements ActionListener {
 					for (File file : fs) {
 						set.add(file.getName());// get the file name
 					}
-					// p.s. ���if����ɾ�� ������
 					if (set.contains(f.getName())) {// indicate whether the file has been existed in the system
 						JOptionPane.showMessageDialog(new JDialog(),
-								f.getName() + ":The selected file is already exist��");
+								f.getName() + ":The selected file is already exist.");
 						return;
 					}
 					input = new FileInputStream(f);

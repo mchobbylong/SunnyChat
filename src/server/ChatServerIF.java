@@ -17,6 +17,8 @@ public interface ChatServerIF extends Remote {
 	public User login(String userName, String password, ChatClient3IF client) throws RemoteException;
 
 	public int register(String userName, String password) throws RemoteException;
+	
+	public int joinGroup(int cid, int uid) throws RemoteException;
 
 	public void updateChat(String userName, String chatMessage) throws RemoteException, InvalidSessionException;
 

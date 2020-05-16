@@ -91,7 +91,7 @@ public class ClientSeeGroupMember extends JFrame implements ActionListener {
 			}
 		});
 		
-		// Backgroud image
+		// Background image
 		backgroud = new JLabel(new ImageIcon("image/search/searchPage.jpg"));
 		backgroud.setBounds(0,0,500,700);
 		c.add(backgroud);		
@@ -116,7 +116,7 @@ public class ClientSeeGroupMember extends JFrame implements ActionListener {
         new ClientSeeGroupMember();
     }
     
-    // 用于添加scroll pane的内容 需要时可调用 是遗留财产
+    // To add the scroll pane when needed
     public void setClientPanel(String[] currClients) {  	
     	clientPanel = new JPanel(new BorderLayout());
         listModel = new DefaultListModel<String>();

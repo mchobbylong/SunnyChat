@@ -56,6 +56,18 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		}
 		return false;
 	}
+	
+	public boolean joinGroup(int cid) {
+		try {
+			int uid = serverIF.joinGroup(cid, me.uid);
+			if (uid != 0) {
+				return true;
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	public void updateChat(String message) {
 		try {

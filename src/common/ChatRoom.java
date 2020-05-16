@@ -8,4 +8,9 @@ public class ChatRoom implements Serializable {
 
 	public int cid;
 	public ArrayList<User> users;
+	
+	public ChatRoom(int cid, ArrayList<User> users) {
+		this.cid = cid;
+		this.users = users;
+	}
 }

@@ -210,4 +210,15 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		}
 	}
 
+	@Override
+	public int joinGroup(int cid, int uid) throws RemoteException{
+		try {
+			ChatRoomModel chatroom = new ChatRoomModel(cid, uid);
+			return chatroom.cid;
+		} catch (DuplicatedObjectException e) {
+			return 0;
+		} catch (ObjectNotFoundException e) {
+			return 0;
+		} 
+	}
 }// END CLASS
