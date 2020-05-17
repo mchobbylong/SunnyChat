@@ -1,4 +1,4 @@
-package server.exception;
+package common;
 
 public class ObjectNotFoundException extends Exception {
 	private static final long serialVersionUID = 1;

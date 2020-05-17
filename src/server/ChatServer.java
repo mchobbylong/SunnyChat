@@ -10,18 +10,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
 
 import client.ChatClient3IF;
-import server.exception.DuplicatedObjectException;
-import server.exception.ObjectNotFoundException;
 import server.model.*;
 import common.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	String line = "---------------------------------------------\n";
-	private Vector<Chatter> chatters;
+	private Vector<ChatClient> chatters;
 	private static final long serialVersionUID = 1L;
 
-	private ConcurrentHashMap<Integer, Chatter> onlineUsers;
+	private ConcurrentHashMap<Integer, ChatClient> onlineUsers;
 
 	// asynchronized thread pool
 	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
@@ -29,7 +27,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	// Constructor
 	public ChatServer() throws RemoteException {
 		super();
-		chatters = new Vector<Chatter>(10, 1);
+		chatters = new Vector<ChatClient>(10, 1);
 		onlineUsers = new ConcurrentHashMap<>();
 	}
 
@@ -75,12 +73,12 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
 				String[] currentUsers = getUserList();
-				for (Chatter c : chatters) {
-					try {
-						c.getClient().updateUserList(currentUsers);
-					} catch (RemoteException e) {
-						System.out.println("Warning: failed to update user list of " + c.name);
-					}
+				for (ChatClient c : chatters) {
+					// try {
+					// c.getClient().updateUserList(currentUsers);
+					// } catch (RemoteException e) {
+					// System.out.println("Warning: failed to update user list of " + c.name);
+					// }
 				}
 				return null;
 			}
@@ -101,6 +99,32 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		return allUsers;
 	}
 
+	private void pushAllChatRooms(UserModel userModel, ChatClient3IF client) {
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				for (ChatRoomModel roomModel : ChatRoomModel.getUserRelatedRooms(userModel.uid)) {
+					ChatRoom room = roomModel.getInstance();
+					room.title = roomModel.getTitle(userModel.uid);
+					for (ChatMessage message : ChatMessageModel.getRoomRelatedMessages(room.cid, userModel.lastOnline))
+						room.addMessage(message);
+					client.receiveChatRoom(room);
+				}
+				return null;
+			}
+		});
+	}
+
+	private void pushChatRoom(ChatClient c, ChatRoomModel roomModel) {
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				ChatRoom room = roomModel.getInstance();
+				room.title = roomModel.getTitle(c.user.uid);
+				c.client.receiveChatRoom(room);
+				return null;
+			}
+		});
+	}
+
 	/**
 	 * Send a message to all users
 	 *
@@ -109,9 +133,9 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	public void sendToAll(String newMessage) {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
-				for (Chatter c : chatters) {
+				for (ChatClient c : chatters) {
 					try {
-						c.getClient().messageFromServer(newMessage);
+						c.client.messageFromServer(newMessage);
 					} catch (RemoteException e) {
 						e.printStackTrace();
 					}
@@ -140,7 +164,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	@Override
 	public void leaveChat(String userName) throws RemoteException {
 
-		for (Chatter c : chatters) {
+		for (ChatClient c : chatters) {
 			if (c.getName().equals(userName)) {
 				System.out.println(line + userName + " left the chat session");
 				System.out.println(new Date(System.currentTimeMillis()));
@@ -162,13 +186,13 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	public void sendPM(int[] privateGroup, String privateMessage) throws RemoteException {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
-				Chatter pc;
+				ChatClient pc;
 				for (int i : privateGroup) {
 					pc = chatters.elementAt(i);
 					try {
-						pc.getClient().messageFromServer(privateMessage);
+						pc.client.messageFromServer(privateMessage);
 					} catch (RemoteException e) {
-						System.out.println("Warning: failed to send message to " + pc.name);
+						System.out.println("Warning: failed to send message to " + pc.getName());
 					}
 				}
 				return null;
@@ -177,24 +201,22 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	}
 
 	@Override
-	public User login(String userName, String password, ChatClient3IF client) throws RemoteException {
-		try {
-			UserModel userModel = new UserModel(userName, password);
+	public User login(String userName, String password, ChatClient3IF client)
+			throws RemoteException, ObjectNotFoundException {
+		UserModel userModel = new UserModel(userName, password);
 
-			// Add to online user list
-			onlineUsers.put(userModel.uid, new Chatter(userName, client));
-			chatters.add(new Chatter(userName, client));
+		User user = new User(userModel.uid, userName);
+		ChatClient c = new ChatClient(user, client);
 
-			// announce to all chatters (asynchronized)
-			updateUserList();
-			sendToAll("[Server] : " + userName + " has joined the group.\n");
+		// Push all ChatRooms with messages
+		pushAllChatRooms(userModel, client);
 
-			User user = new User(userModel.uid, userName);
-			Session.createSession(user);
-			return user;
-		} catch (ObjectNotFoundException e) {
-			return new User(0, userName);
-		}
+		// Add to online user list
+		onlineUsers.put(userModel.uid, c);
+
+		// Generate session for the user
+		Session.createSession(user);
+		return user;
 	}
 
 	@Override
@@ -211,8 +233,15 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	}
 
 	@Override
-	public void joinGroup(int cid, User user) throws RemoteException, DuplicatedObjectException {
-		ChatRoomModel chatroom = new ChatRoomModel(cid);
+	public void joinGroup(int groupNumber, User user) throws RemoteException, DuplicatedObjectException {
+		ChatRoomModel chatroom = ChatRoomModel.getGroupChat(groupNumber);
 		chatroom.addUser(user);
+		pushChatRoom(onlineUsers.get(user.uid), chatroom);
+
+		// Announce the entered user to all members in the chatroom
+		// ChatMessageModel messageModel = new ChatMessageModel(chatroom.cid,
+		// ChatMessageModel.SYSTEM_USER,
+		// String.format("User %s has joined the chat room.", user.userName));
+		// pushMessage(messageModel.getInstance());
 	}
-}// END CLASS
+}

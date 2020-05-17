@@ -1,7 +1,7 @@
 package server.model;
 
 import server.DatabaseHelper;
-import server.exception.*;
+import common.*;
 
 import java.util.HashMap;
 
@@ -9,6 +9,7 @@ public class UserModel {
 	public int uid;
 	public String userName;
 	public String password;
+	public String lastOnline;
 
 	/**
 	 * Create a new user. Must call method create() later.
@@ -21,15 +22,15 @@ public class UserModel {
 	 * Get a user by uid.
 	 */
 	public UserModel(int uid) throws ObjectNotFoundException {
-		String sql = String.format("select uid, username, password from user where uid=%d", uid);
+		String sql = String.format("select uid, username, password, last_online from user where uid=%d", uid);
 		HashMap<String, Object> row = DatabaseHelper.queryFirst(sql);
-		if (row != null) {
-			this.uid = uid;
-			this.userName = (String) row.get("username");
-			this.password = (String) row.get("password");
-		} else {
+		if (row == null) {
 			throw new ObjectNotFoundException(String.format("The user with uid of %d is not found.", uid));
 		}
+		this.uid = uid;
+		this.userName = (String) row.get("username");
+		this.password = (String) row.get("password");
+		this.lastOnline = (String) row.get("last_online");
 	}
 
 	/**
@@ -40,16 +41,17 @@ public class UserModel {
 	 * @throws ObjectNotFoundException
 	 */
 	public UserModel(String userName, String password) throws ObjectNotFoundException {
-		String sql = String.format("select uid, username, password from user where username ='%s' and password ='%s'",
+		String sql = String.format(
+				"select uid, username, password, last_online from user where username ='%s' and password ='%s'",
 				userName, password);
 		HashMap<String, Object> row = DatabaseHelper.queryFirst(sql);
-		if (row != null) {
-			this.uid = (int) row.get("uid");
-			this.userName = (String) row.get("username");
-			this.password = (String) row.get("password");
-		} else {
+		if (row == null) {
 			throw new ObjectNotFoundException(String.format("The user with uid of %d is not found.", uid));
 		}
+		this.uid = (int) row.get("uid");
+		this.userName = (String) row.get("username");
+		this.password = (String) row.get("password");
+		this.lastOnline = (String) row.get("last_online");
 	}
 
 	/**

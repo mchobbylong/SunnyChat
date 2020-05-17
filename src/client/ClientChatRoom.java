@@ -20,22 +20,18 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-/**
- *
- * @author RMI Assignment
- *
- */
+import common.*;
+
 public class ClientChatRoom extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel textPanel;
 	private JTextArea textField;
 	private String message;
-	private Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
+	private static Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
+	private static Icon closeEye = new ImageIcon("image/chatroom/unable_see_group_members.png");
 
 	private ChatClient3 chatClient;
-	private JList<String> list;
-	private DefaultListModel<String> listModel;
 	private JButton exitButton, minButton;// exit button and minimize button
 	private JLabel backgroud;
 	private JButton sendButton, fileButton;
@@ -47,7 +43,16 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 	private Point frameLoc;// frame location
 
 	protected JTextArea textArea;
-	protected JPanel clientPanel, userPanel;
+
+	// My Friends Panel
+	private JPanel friendPanel;
+	private JList<ChatRoom> friendList;
+	private ChatRoomListModel friendListModel;
+
+	// My Groups Panel
+	private JPanel groupPanel;
+	private JList<ChatRoom> groupList;
+	private ChatRoomListModel groupListModel;
 
 	/**
 	 * GUI Constructor
@@ -73,13 +78,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 
 		// exit button
 		exitButton = new JButton(new ImageIcon("image/login/exit_btn.jpg"));
-		exitButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				chatClient.logout();
-				System.exit(0);
-			}
-		});
+		exitButton.addActionListener(this);
 		exitButton.setBounds(770, 0, 30, 30);
 		c.add(exitButton);
 
@@ -121,11 +120,52 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		textArea.setBounds(200, 50, 580, 220);
 		c.add(textArea);
 
-		// add my friends panel
-		c.add(myFriendsPanel());
+		// Add my friends panel
+		friendPanel = new JPanel(new BorderLayout());
+		JLabel label = new JLabel("My Friend List", JLabel.CENTER);
+		friendPanel.add(label, BorderLayout.NORTH);
+		friendPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+		friendPanel.setBounds(20, 50, 160, 220);
+		c.add(friendPanel);
 
-		// my groups panel
-		c.add(myGroupsPanel());
+		// Initialize my friends list
+		friendListModel = new ChatRoomListModel();
+		friendList = new JList<>(friendListModel);
+		friendList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		friendList.setFont(msgFont);
+		friendPanel.add(new JScrollPane(friendList));
+
+		// Add my groups panel
+		groupPanel = new JPanel(new BorderLayout());
+		label = new JLabel("My Group List", JLabel.CENTER);
+		groupPanel.add(label, BorderLayout.NORTH);
+		groupPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
+		groupPanel.setBounds(20, 300, 160, 125);
+		c.add(groupPanel);
+
+		// Initialize my groups list
+		groupListModel = new ChatRoomListModel();
+		groupList = new JList<>(groupListModel);
+		groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		groupList.setFont(msgFont);
+		groupPanel.add(new JScrollPane(groupList));
+
+		// Add listener to set the state of seeGroupMemberButton
+		// - No group is selected: seeGroupMemberButton is disabled
+		// - One group is selected: seeGroupMemberButton is enabled
+		groupList.addListSelectionListener(new ListSelectionListener() {
+			@SuppressWarnings("unchecked")
+			public void valueChanged(ListSelectionEvent e) {
+				JList<ChatRoom> list = (JList<ChatRoom>) e.getSource();
+				if (list.isSelectionEmpty()) {
+					seeGroupMemberButton.setEnabled(false);
+					seeGroupMemberButton.setIcon(closeEye);
+				} else {
+					seeGroupMemberButton.setEnabled(true);
+					seeGroupMemberButton.setIcon(openEye);
+				}
+			}
+		});
 
 		// find friends button
 		findFriendsButton = new JButton(new ImageIcon("image/chatroom/friend_btn.png"));
@@ -142,7 +182,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		c.add(findGroupsButton);
 
 		// see group member button
-		seeGroupMemberButton = new JButton(new ImageIcon("image/chatroom/unable_see_group_members.png"));
+		seeGroupMemberButton = new JButton(closeEye);
 		seeGroupMemberButton.addActionListener(this);
 		seeGroupMemberButton.setToolTipText("See the group member");
 		seeGroupMemberButton.setBounds(104, 447, 33, 33);
@@ -195,66 +235,6 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		this.setUndecorated(true);// delete the original frame give by Java
 		this.setLocationRelativeTo(null);// show in the middle of the screen
 		this.setVisible(true);
-
-	}
-
-	public JPanel myFriendsPanel() {
-		// my friends panel
-		userPanel = new JPanel(new BorderLayout());
-		String userStr = " My Friend List";
-		JLabel userLabel = new JLabel(userStr, JLabel.CENTER);
-		userPanel.add(userLabel, BorderLayout.NORTH);
-
-		userLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
-		String[] noClientsYet = { "Empty friend list" };
-		setClientPanel(noClientsYet);
-
-		userPanel.setBounds(20, 50, 160, 220);
-		return userPanel;
-	}
-
-	public JPanel myGroupsPanel() {
-		// my groups panel
-		userPanel = new JPanel(new BorderLayout());
-		String groupStr = "My Group List";
-
-		JLabel groupLabel = new JLabel(groupStr, JLabel.CENTER);
-		userPanel.add(groupLabel, BorderLayout.NORTH);
-
-		groupLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
-		String[] noClientsYet = { "Empty group list" };
-		setClientPanel(noClientsYet);
-
-		userPanel.setBounds(20, 300, 160, 125);
-		return userPanel;
-	}
-
-	public void setClientPanel(String[] currClients) {
-		clientPanel = new JPanel(new BorderLayout());
-		listModel = new DefaultListModel<String>();
-
-		for (String s : currClients) {
-			listModel.addElement(s);
-		}
-		/*
-		 * if(currClients.length > 1){ privateMsgButton.setEnabled(true); }
-		 */
-
-		// Create the list and put it in a scroll pane.
-		list = new JList<String>(listModel);
-		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		list.setVisibleRowCount(8);
-		list.setFont(msgFont);
-		list.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
-				seeGroupMemberButton.setEnabled(true);
-				seeGroupMemberButton.setIcon(openEye);
-			}
-		});
-		JScrollPane listScrollPane = new JScrollPane(list);
-
-		clientPanel.add(listScrollPane, BorderLayout.CENTER);
-		userPanel.add(clientPanel, BorderLayout.CENTER);
 	}
 
 	/**
@@ -285,6 +265,10 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 			chatClient.logout();
 			this.dispose();
 			new ClientLoginGUI(chatClient);
+		}
+		if (e.getSource() == exitButton) {
+			chatClient.logout();
+			System.exit(0);
 		}
 	}
 
@@ -341,4 +325,10 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 		}
 	}
 
+	public void addChatRoom(ChatRoom room) {
+		if (room.type == 0)
+			friendListModel.addChatRoom(room);
+		else
+			groupListModel.addChatRoom(room);
+	}
 }

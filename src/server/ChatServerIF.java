@@ -4,8 +4,9 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import common.InvalidSessionException;
+import common.ObjectNotFoundException;
 import common.User;
-import server.exception.DuplicatedObjectException;
+import common.DuplicatedObjectException;
 import client.ChatClient3IF;
 
 /**
@@ -15,11 +16,12 @@ import client.ChatClient3IF;
  *
  */
 public interface ChatServerIF extends Remote {
-	public User login(String userName, String password, ChatClient3IF client) throws RemoteException;
+	public User login(String userName, String password, ChatClient3IF client)
+			throws RemoteException, ObjectNotFoundException;
 
 	public int register(String userName, String password) throws RemoteException;
 
-	public void joinGroup(int cid, User user) throws RemoteException, DuplicatedObjectException;
+	public void joinGroup(int groupNumber, User user) throws RemoteException, DuplicatedObjectException;
 
 	public void updateChat(String userName, String chatMessage) throws RemoteException, InvalidSessionException;
 

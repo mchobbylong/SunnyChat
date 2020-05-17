@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JOptionPane;
 
 import server.ChatServerIF;
-import server.exception.DuplicatedObjectException;
 import common.*;
 
 public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
@@ -33,12 +32,12 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		boolean success = false;
 		try {
 			me = serverIF.login(userName, password, this);
-			if (me.uid > 0) {
-				chatGUI = new ClientChatRoom(this);
-				success = true;
-			}
+			chatGUI = new ClientChatRoom(this);
+			success = true;
+		} catch (ObjectNotFoundException e) {
+			success = false;
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			raiseFatalError(e);
 		} finally {
 			guiLock.writeLock().unlock();
 		}
@@ -52,17 +51,17 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 				return true;
 			}
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			raiseFatalError(e);
 		}
 		return false;
 	}
 
-	public boolean joinGroup(int cid) {
+	public boolean joinGroup(int groupNumber) {
 		try {
-			serverIF.joinGroup(cid, me);
+			serverIF.joinGroup(groupNumber, me);
 			return true;
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			raiseFatalError(e);
 		} catch (DuplicatedObjectException e) {
 			return false;
 		}
@@ -73,8 +72,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		try {
 			serverIF.updateChat(me.userName, message);
 		} catch (RemoteException | InvalidSessionException e) {
-			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			raiseFatalError(e);
 		}
 	}
 
@@ -82,8 +80,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		try {
 			serverIF.sendPM(privateList, message);
 		} catch (RemoteException | InvalidSessionException e) {
-			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			raiseFatalError(e);
 		}
 	}
 
@@ -91,8 +88,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		try {
 			serverIF.leaveChat(me.userName);
 		} catch (RemoteException e) {
-			JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			raiseFatalError(e);
 		} catch (InvalidSessionException e) {
 			// Do nothing, since the client is closing
 		}
@@ -116,20 +112,38 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		}
 	}
 
+	// /**
+	// * A method to update the display of users currently connected to the server
+	// */
+	// @Override
+	// public void updateUserList(String[] currentUsers) throws RemoteException {
+	// guiLock.readLock().lock();
+	// try {
+	// chatGUI.userPanel.remove(chatGUI.clientPanel);
+	// chatGUI.setClientPanel(currentUsers);
+	// chatGUI.clientPanel.repaint();
+	// chatGUI.clientPanel.revalidate();
+	// } finally {
+	// guiLock.readLock(W).unlock();
+	// }
+	// }
+
 	/**
-	 * A method to update the display of users currently connected to the server
+	 * Receive a new ChatRoom from server
 	 */
 	@Override
-	public void updateUserList(String[] currentUsers) throws RemoteException {
+	public void receiveChatRoom(ChatRoom room) throws RemoteException {
 		guiLock.readLock().lock();
 		try {
-			chatGUI.userPanel.remove(chatGUI.clientPanel);
-			chatGUI.setClientPanel(currentUsers);
-			chatGUI.clientPanel.repaint();
-			chatGUI.clientPanel.revalidate();
+			chatGUI.addChatRoom(room);
 		} finally {
 			guiLock.readLock().unlock();
 		}
+	}
+
+	public void raiseFatalError(Exception e) {
+		JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
+		System.exit(1);
 	}
 
 	public static void main(String[] args) {
