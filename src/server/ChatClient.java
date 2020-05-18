@@ -1,6 +1,6 @@
 package server;
 
-import client.ChatClient3IF;
+import client.ClientIF;
 import common.User;
 
 /**
@@ -13,10 +13,10 @@ import common.User;
 public class ChatClient {
 
 	public User user;
-	public ChatClient3IF client;
+	public ClientIF client;
 
 	// constructor
-	public ChatClient(User user, ChatClient3IF client) {
+	public ChatClient(User user, ClientIF client) {
 		this.user = user;
 		this.client = client;
 	}

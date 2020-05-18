@@ -13,7 +13,7 @@ public class ClientRegisterGUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 
-	private ChatClient3 client;
+	private Client client;
 
 	private JLabel backgroud; // background image
 	private JButton exitButton, minButton;// exit button and minimize button
@@ -29,7 +29,7 @@ public class ClientRegisterGUI extends JFrame implements ActionListener {
 	private Point frameTemp;// relative location of mouse
 	private Point frameLoc;// frame location
 
-	public ClientRegisterGUI(ChatClient3 client) {
+	public ClientRegisterGUI(Client client) {
 		// set the client instance
 		this.client = client;
 		// get container

@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 
 import common.*;
 
-public interface ChatClient3IF extends Remote {
+public interface ClientIF extends Remote {
 
 	public void messageFromServer(String message) throws RemoteException;
 

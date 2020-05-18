@@ -9,12 +9,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
 
-import client.ChatClient3IF;
+import client.ClientIF;
 import server.model.*;
 import common.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
+public class Server extends UnicastRemoteObject implements ServerIF {
 	String line = "---------------------------------------------\n";
 	private Vector<ChatClient> chatters;
 	private static final long serialVersionUID = 1L;
@@ -25,7 +25,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
 
 	// Constructor
-	public ChatServer() throws RemoteException {
+	public Server() throws RemoteException {
 		super();
 		chatters = new Vector<ChatClient>(10, 1);
 		onlineUsers = new ConcurrentHashMap<>();
@@ -46,7 +46,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		}
 
 		try {
-			ChatServerIF server = new ChatServer();
+			ServerIF server = new Server();
 			Naming.rebind("rmi://" + hostName + "/" + serviceName, server);
 			System.out.println("Group Chat RMI Server is running...");
 		} catch (Exception e) {
@@ -99,7 +99,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 		return allUsers;
 	}
 
-	private void pushAllChatRooms(UserModel userModel, ChatClient3IF client) {
+	private void pushAllChatRooms(UserModel userModel, ClientIF client) {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
 				for (ChatRoomModel roomModel : ChatRoomModel.getUserRelatedRooms(userModel.uid)) {
@@ -201,7 +201,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServerIF {
 	}
 
 	@Override
-	public User login(String userName, String password, ChatClient3IF client)
+	public User login(String userName, String password, ClientIF client)
 			throws RemoteException, ObjectNotFoundException {
 		UserModel userModel = new UserModel(userName, password);
 

@@ -22,7 +22,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import common.*;
 
-public class ClientChatRoom extends JFrame implements ActionListener {
+public class ClientMainGUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel textPanel;
@@ -31,7 +31,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 	private static Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
 	private static Icon closeEye = new ImageIcon("image/chatroom/unable_see_group_members.png");
 
-	private ChatClient3 chatClient;
+	private Client chatClient;
 	private JButton exitButton, minButton;// exit button and minimize button
 	private JLabel backgroud;
 	private JButton sendButton, fileButton;
@@ -57,7 +57,7 @@ public class ClientChatRoom extends JFrame implements ActionListener {
 	/**
 	 * GUI Constructor
 	 */
-	public ClientChatRoom(ChatClient3 client) {
+	public ClientMainGUI(Client client) {
 		// set the client
 		chatClient = client;
 

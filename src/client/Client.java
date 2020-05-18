@@ -8,23 +8,23 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.swing.JOptionPane;
 
-import server.ChatServerIF;
+import server.ServerIF;
 import common.*;
 
-public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
+public class Client extends UnicastRemoteObject implements ClientIF {
 	private static final long serialVersionUID = 7468891722773409712L;
 
-	ClientChatRoom chatGUI;
+	ClientMainGUI chatGUI;
 	User me;
 	private ReadWriteLock guiLock = new ReentrantReadWriteLock();
 	private String hostName = "localhost";
 	private String serviceName = "GroupChatService";
-	protected ChatServerIF serverIF;
+	protected ServerIF serverIF;
 	protected boolean connectionProblem = false;
 
-	public ChatClient3() throws Exception {
+	public Client() throws Exception {
 		super();
-		serverIF = (ChatServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
+		serverIF = (ServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
 	}
 
 	public boolean login(String userName, String password) {
@@ -32,7 +32,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 		boolean success = false;
 		try {
 			me = serverIF.login(userName, password, this);
-			chatGUI = new ClientChatRoom(this);
+			chatGUI = new ClientMainGUI(this);
 			success = true;
 		} catch (ObjectNotFoundException e) {
 			success = false;
@@ -148,7 +148,7 @@ public class ChatClient3 extends UnicastRemoteObject implements ChatClient3IF {
 
 	public static void main(String[] args) {
 		try {
-			ChatClient3 client = new ChatClient3();
+			Client client = new Client();
 			new ClientLoginGUI(client);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "The server is currently unavailable, please try again later!", "Error",

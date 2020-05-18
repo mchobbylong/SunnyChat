@@ -7,7 +7,7 @@ import common.InvalidSessionException;
 import common.ObjectNotFoundException;
 import common.User;
 import common.DuplicatedObjectException;
-import client.ChatClient3IF;
+import client.ClientIF;
 
 /**
  * Server RMI interface
@@ -15,8 +15,8 @@ import client.ChatClient3IF;
  * @author Daragh Walshe B00064428 RMI Assignment 2 April 2015
  *
  */
-public interface ChatServerIF extends Remote {
-	public User login(String userName, String password, ChatClient3IF client)
+public interface ServerIF extends Remote {
+	public User login(String userName, String password, ClientIF client)
 			throws RemoteException, ObjectNotFoundException;
 
 	public int register(String userName, String password) throws RemoteException;
