@@ -127,7 +127,6 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		friendPanel.add(label, BorderLayout.NORTH);
 		friendPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
 		friendPanel.setBounds(20, 50, 160, 220);
-		c.add(friendPanel);
 
 		// Initialize my friends list
 		friendListModel = new ChatRoomListModel();
@@ -135,6 +134,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		friendList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		friendList.setFont(msgFont);
 		friendPanel.add(new JScrollPane(friendList));
+		c.add(friendPanel);
 
 		// Add my groups panel
 		groupPanel = new JPanel(new BorderLayout());
@@ -142,7 +142,6 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		groupPanel.add(label, BorderLayout.NORTH);
 		groupPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 16));
 		groupPanel.setBounds(20, 300, 160, 125);
-		c.add(groupPanel);
 
 		// Initialize my groups list
 		groupListModel = new ChatRoomListModel();
@@ -150,6 +149,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		groupList.setFont(msgFont);
 		groupPanel.add(new JScrollPane(groupList));
+		c.add(groupPanel);
 
 		// Add listener to switch between ChatRooms and corresponding messages
 		ListSelectionListener switchChatRoomListener = new ListSelectionListener() {
@@ -363,19 +363,27 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 	}
 
 	public void addChatRoom(ChatRoom room) {
-		if (room.type == 0)
-			friendListModel.addChatRoom(room);
-		else
-			groupListModel.addChatRoom(room);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (room.type == 0)
+					friendListModel.addChatRoom(room);
+				else
+					groupListModel.addChatRoom(room);
+			}
+		});
 	}
 
 	public void addMessage(ChatMessage message) {
-		// If the message belongs to the selected ChatRoom, then immediately display it
-		if (selectedChatRoomID == message.cid) {
-			textArea.append(message.displayMessage());
-			textArea.setCaretPosition(textArea.getDocument().getLength());
-		}
-		friendListModel.addMessage(message, selectedChatRoomID);
-		groupListModel.addMessage(message, selectedChatRoomID);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				// If the message belongs to the selected ChatRoom, then immediately display it
+				if (selectedChatRoomID == message.cid) {
+					textArea.append(message.displayMessage());
+					textArea.setCaretPosition(textArea.getDocument().getLength());
+				}
+				friendListModel.addMessage(message, selectedChatRoomID);
+				groupListModel.addMessage(message, selectedChatRoomID);
+			}
+		});
 	}
 }

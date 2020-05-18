@@ -43,21 +43,18 @@ public class ChatRoomListModel extends AbstractListModel<ChatRoom> {
 
 	public void addChatRoom(ChatRoom room) {
 		wLock.lock();
-		boolean sorted = false;
 		int size = roomIndex.size();
 		try {
 			rooms.put(room.cid, room);
 			roomIndex.add(room.cid);
 			if (size > 0 && roomIndex.get(size - 1) < room.cid) {
 				Collections.sort(roomIndex);
-				sorted = true;
+				fireContentsChanged(this, 0, size - 1);
 			}
+			fireIntervalAdded(this, size, size);
 		} finally {
 			wLock.unlock();
 		}
-		if (sorted)
-			fireContentsChanged(this, 0, size - 1);
-		fireIntervalAdded(this, size, size);
 	}
 
 	public void addMessage(ChatMessage message, Integer selectedChatRoomID) {
