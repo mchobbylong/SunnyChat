@@ -2,6 +2,7 @@ package server;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import common.InvalidSessionException;
 import common.ObjectNotFoundException;
@@ -23,4 +24,11 @@ public interface ServerIF extends Remote {
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException;
 
 	public String[] getChatRoomMembers(User user, int cid) throws RemoteException, InvalidSessionException;
+
+	public ArrayList<User> getOnlineUsers(User user) throws RemoteException, InvalidSessionException;
+
+	public void sendFriendInvitation(User user, int uid)
+			throws RemoteException, InvalidSessionException, DuplicatedObjectException, ObjectNotFoundException;
+
+	public void acceptFriendInvitation(User user, int uid) throws RemoteException, InvalidSessionException;
 }

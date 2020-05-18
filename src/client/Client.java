@@ -3,6 +3,7 @@ package client;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -85,6 +86,41 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		return new String[] {};
 	}
 
+	public ArrayList<User> getOnlineUsers() {
+		try {
+			return serverIF.getOnlineUsers(me);
+		} catch (RemoteException | InvalidSessionException e) {
+			raiseFatalError(e);
+		}
+		return new ArrayList<User>();
+	}
+
+	/**
+	 * Send an invitation to a online user.
+	 *
+	 * @param user
+	 * @return Status:
+	 *         <P/>
+	 *         - 0: Success
+	 *         <P/>
+	 *         - 1: The user is not online
+	 *         <P/>
+	 *         - 2: The user is already a friend
+	 */
+	public int sendFriendInvitation(User user) {
+		try {
+			serverIF.sendFriendInvitation(me, user.uid);
+			return 0;
+		} catch (RemoteException | InvalidSessionException e) {
+			raiseFatalError(e);
+		} catch (ObjectNotFoundException e) {
+			return 1;
+		} catch (DuplicatedObjectException e) {
+			return 2;
+		}
+		return 1;
+	}
+
 	public void logout() {
 		try {
 			serverIF.logout(me);
@@ -116,6 +152,24 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		} finally {
 			guiLock.readLock().unlock();
 		}
+	}
+
+	@Override
+	public void receiveFriendInvitation(User user) throws RemoteException {
+		new Thread(new Runnable() {
+			public void run() {
+				int result = JOptionPane.showConfirmDialog(null,
+						String.format("User %s wants to become your friend, accept or not?", user.userName), "Question",
+						JOptionPane.YES_NO_OPTION);
+				if (result == JOptionPane.NO_OPTION)
+					return;
+				try {
+					serverIF.acceptFriendInvitation(me, user.uid);
+				} catch (RemoteException | InvalidSessionException e) {
+					raiseFatalError(e);
+				}
+			}
+		}).start();
 	}
 
 	public void raiseFatalError(Exception e) {

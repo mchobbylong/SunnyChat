@@ -266,6 +266,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		this.setSize(800, 500);// window size
 		this.setUndecorated(true);// delete the original frame give by Java
 		this.setLocationRelativeTo(null);// show in the middle of the screen
+		setTitle(String.format("Chat Client for [%s]", client.me.userName));
 		this.setVisible(true);
 	}
 
@@ -277,7 +278,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		// get text and clear textField
 		if (e.getSource() == sendButton) {
 			if (selectedChatRoomID == null) {
-				JOptionPane.showMessageDialog(this, "You have not choose a chat room yet :(", "Hint",
+				JOptionPane.showMessageDialog(null, "You have not choose a chat room yet :(", "Hint",
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -288,7 +289,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		}
 		// find online user
 		else if (e.getSource() == findFriendsButton) {
-			new ClientSearchFriendGUI();
+			new ClientSearchFriendGUI(chatClient);
 		}
 		// find groups
 		else if (e.getSource() == findGroupsButton) {

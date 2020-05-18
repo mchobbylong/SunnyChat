@@ -148,7 +148,7 @@ public class ClientRegisterGUI extends JFrame implements ActionListener {
 					this.dispose();
 					new ClientLoginGUI(client);
 				} else {
-					JOptionPane.showMessageDialog(this, "Your username has been used:(", "Prompt",
+					JOptionPane.showMessageDialog(this, "Your username has been used :(", "Prompt",
 							JOptionPane.WARNING_MESSAGE);
 				}
 			} else {

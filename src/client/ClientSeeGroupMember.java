@@ -58,7 +58,6 @@ public class ClientSeeGroupMember extends JFrame implements ActionListener {
 		// member panel
 		memberPanel = new JPanel(new BorderLayout());
 		memberPanel.setBounds(20, 65, 460, 220);
-		c.add(memberPanel);
 
 		// Create the list and put it in a scroll pane.
 		listModel = new DefaultListModel<String>();

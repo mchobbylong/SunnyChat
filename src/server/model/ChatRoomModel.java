@@ -42,6 +42,15 @@ public class ChatRoomModel {
 		this.groupNumber = (Integer) row.get("group_number");
 	}
 
+	public ChatRoomModel(int uid1, int uid2) {
+		String sql = "insert into chatroom (type) values (0)";
+		cid = DatabaseHelper.insert(sql);
+		type = 0;
+		groupNumber = null;
+		sql = String.format("insert into chatroom_user (cid, uid) values (%d, %d), (%d, %d)", cid, uid1, cid, uid2);
+		DatabaseHelper.execute(sql);
+	}
+
 	public static ChatRoomModel getGroupChat(int groupNumber) {
 		ChatRoomModel room = new ChatRoomModel();
 		room.groupNumber = groupNumber;
@@ -120,5 +129,13 @@ public class ChatRoomModel {
 		// Insert the chatroom-user relationship
 		sql = String.format("insert into chatroom_user (cid, uid) values (%d, %d)", cid, uid);
 		DatabaseHelper.execute(sql);
+	}
+
+	public static boolean isFriend(int uid1, int uid2) {
+		String sql = String.format("select count(*) as count "
+				+ "from (chatroom natural join chatroom_user as t1) inner join chatroom_user as t2 on t1.cid=t2.cid "
+				+ "where t1.uid=%d and t2.uid=%d and chatroom.type=0", uid1, uid2);
+		HashMap<String, Object> row = DatabaseHelper.queryFirst(sql);
+		return (long) row.get("count") > 0;
 	}
 }

@@ -82,6 +82,8 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	}
 
 	private void pushChatRoom(ChatClient c, ChatRoomModel roomModel) {
+		if (c == null)
+			return;
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
 				ChatRoom room = roomModel.getInstance();
@@ -185,5 +187,42 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		for (User member : getChatRoomMembers(cid))
 			names.add(member.userName);
 		return (String[]) names.toArray(new String[names.size()]);
+	}
+
+	@Override
+	public ArrayList<User> getOnlineUsers(User user) throws RemoteException, InvalidSessionException {
+		Session.validateSession(user);
+		ArrayList<User> users = new ArrayList<>();
+		for (ChatClient c : onlineUsers.values())
+			if (user.uid.intValue() != c.user.uid)
+				users.add(c.user);
+		return users;
+	}
+
+	@Override
+	public void sendFriendInvitation(User user, int uid)
+			throws RemoteException, InvalidSessionException, DuplicatedObjectException, ObjectNotFoundException {
+		Session.validateSession(user);
+		// Check if this two users are already friends
+		if (ChatRoomModel.isFriend(user.uid, uid))
+			throw new DuplicatedObjectException(String.format("User %d and %d are already friends.", user.uid, uid));
+		ChatClient invitee = onlineUsers.get(uid);
+		if (invitee == null)
+			throw new ObjectNotFoundException(String.format("User with uid of %d is offline.", uid));
+		User sentUser = new User(user.uid, user.userName);
+		try {
+			invitee.client.receiveFriendInvitation(sentUser);
+		} catch (RemoteException e) {
+			throw new ObjectNotFoundException(String.format("User with uid of %d is offline.", uid));
+		}
+	}
+
+	@Override
+	public void acceptFriendInvitation(User user, int uid) throws RemoteException, InvalidSessionException {
+		Session.validateSession(user);
+		ChatRoomModel roomModel = new ChatRoomModel(user.uid, uid);
+		pushChatRoom(onlineUsers.get(uid), roomModel);
+		sendMessage(UserModel.SERVER_USER, roomModel.cid, "Your friend has accepted the invitation. Chat now!");
+		pushChatRoom(onlineUsers.get(user.uid), roomModel);
 	}
 }
