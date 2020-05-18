@@ -170,7 +170,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 					textArea.setCaretPosition(textArea.getDocument().getLength());
 					// Clear unread count
 					model.clearUnreadCount(selectedChatRoomID);
-					// Unselect the other list
+					// Unselected the other list
 					if (list == friendList)
 						groupList.clearSelection();
 					else
@@ -257,7 +257,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 			}
 		});
 
-		// Backgroud image
+		// Background image
 		backgroud = new JLabel(new ImageIcon("image/chatroom/bg.jpg"));
 		backgroud.setBounds(0, 0, 800, 500);
 		c.add(backgroud);
@@ -334,10 +334,10 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 					for (File file : fs) {
 						set.add(file.getName());// get the file name
 					}
-					// p.s. 锟斤拷锟絠f锟斤拷锟斤拷删锟斤拷 锟斤拷锟斤拷锟斤拷
+					// p.s. 閿熸枻鎷烽敓绲爁閿熸枻鎷烽敓鏂ゆ嫹鍒犻敓鏂ゆ嫹 閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
 					if (set.contains(f.getName())) {// indicate whether the file has been existed in the system
 						JOptionPane.showMessageDialog(new JDialog(),
-								f.getName() + ":The selected file is already exist锟斤拷");
+								f.getName() + ":The selected file is already exist:(");
 						return;
 					}
 					input = new FileInputStream(f);
@@ -377,7 +377,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				// If the message belongs to the selected ChatRoom, then immediately display it
-				if (selectedChatRoomID == message.cid) {
+				if (selectedChatRoomID != null && selectedChatRoomID == message.cid) {
 					textArea.append(message.displayMessage());
 					textArea.setCaretPosition(textArea.getDocument().getLength());
 				}

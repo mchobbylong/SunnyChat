@@ -64,7 +64,7 @@ public class ChatRoomListModel extends AbstractListModel<ChatRoom> {
 			if (room == null)
 				return;
 			room.addMessage(message);
-			if (selectedChatRoomID == message.cid)
+			if (selectedChatRoomID != null && selectedChatRoomID == message.cid)
 				room.unreadCount = 0;
 			int index = roomIndex.indexOf(message.cid);
 			if (index > -1)
