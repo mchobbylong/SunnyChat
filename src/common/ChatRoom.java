@@ -34,7 +34,7 @@ public class ChatRoom implements Serializable {
 	}
 
 	public void addMessage(ChatMessage message) {
-		messages += "[" + message.fromName + "]: " + message.message + "\n";
+		messages += message.displayMessage();
 		++unreadCount;
 	}
 

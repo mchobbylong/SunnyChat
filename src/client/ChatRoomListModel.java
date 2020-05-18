@@ -64,6 +64,8 @@ public class ChatRoomListModel extends AbstractListModel<ChatRoom> {
 		rLock.lock();
 		try {
 			ChatRoom room = rooms.get(message.cid);
+			if (room == null)
+				return;
 			room.addMessage(message);
 			if (selectedChatRoomID == message.cid)
 				room.unreadCount = 0;
@@ -79,6 +81,8 @@ public class ChatRoomListModel extends AbstractListModel<ChatRoom> {
 		rLock.lock();
 		try {
 			ChatRoom room = rooms.get(cid);
+			if (room == null)
+				return;
 			room.unreadCount = 0;
 			int index = roomIndex.indexOf(cid);
 			if (index > -1)

@@ -3,6 +3,7 @@ package server.model;
 import server.DatabaseHelper;
 import common.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class UserModel {
@@ -10,6 +11,8 @@ public class UserModel {
 	public String userName;
 	public String password;
 	public String lastOnline;
+
+	public static User SYSTEM_USER = new User(null, "System");
 
 	/**
 	 * Create a new user. Must call method create() later.
@@ -71,5 +74,15 @@ public class UserModel {
 		// Then insert the new user, and get the new uid
 		sql = String.format("insert into user (username, password) values ('%s', '%s')", userName, password);
 		this.uid = DatabaseHelper.insert(sql);
+	}
+
+	public static ArrayList<User> getChatRoomMembers(int cid) {
+		ArrayList<User> users = new ArrayList<>();
+		String sql = String.format("select uid, username from user natural join chatroom_user where cid=%d", cid);
+		ArrayList<HashMap<String, Object>> rows = DatabaseHelper.queryAll(sql);
+		for (HashMap<String, Object> row : rows) {
+			users.add(new User((int) row.get("uid"), (String) row.get("username")));
+		}
+		return users;
 	}
 }

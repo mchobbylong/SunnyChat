@@ -18,4 +18,8 @@ public class ChatMessage implements Serializable {
 		this.message = message;
 		this.time = time;
 	}
+
+	public String displayMessage() {
+		return String.format("[%s]: %s\n", fromName, message);
+	}
 }

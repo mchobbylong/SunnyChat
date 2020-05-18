@@ -23,6 +23,8 @@ public interface ServerIF extends Remote {
 
 	public void joinGroup(int groupNumber, User user) throws RemoteException, DuplicatedObjectException;
 
+	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException;
+
 	public void updateChat(String userName, String chatMessage) throws RemoteException, InvalidSessionException;
 
 	public void leaveChat(String userName) throws RemoteException, InvalidSessionException;

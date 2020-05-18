@@ -68,6 +68,14 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		return false;
 	}
 
+	public void sendMessage(int selectedChatRoomID, String message) {
+		try {
+			serverIF.sendMessage(me, selectedChatRoomID, message);
+		} catch (RemoteException | InvalidSessionException e) {
+			raiseFatalError(e);
+		}
+	}
+
 	public void updateChat(String message) {
 		try {
 			serverIF.updateChat(me.userName, message);
@@ -136,6 +144,16 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		guiLock.readLock().lock();
 		try {
 			chatGUI.addChatRoom(room);
+		} finally {
+			guiLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public void receiveMessage(ChatMessage message) throws RemoteException {
+		guiLock.readLock().lock();
+		try {
+			chatGUI.addMessage(message);
 		} finally {
 			guiLock.readLock().unlock();
 		}

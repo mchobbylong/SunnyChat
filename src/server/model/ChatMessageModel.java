@@ -18,8 +18,6 @@ public class ChatMessageModel {
 	public String message;
 	public String time;
 
-	public static User SYSTEM_USER = new User(null, "System");
-
 	/**
 	 * Create a new ChatMessage from given properties.
 	 */

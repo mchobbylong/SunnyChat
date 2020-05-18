@@ -278,29 +278,33 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		// get text and clear textField
 		if (e.getSource() == sendButton) {
+			if (selectedChatRoomID == null) {
+				JOptionPane.showMessageDialog(this, "You have not choose a chat room yet :(", "Hint",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 			message = textField.getText();
 			textField.setText("");
-			System.out.println("Sending message : " + message);
+			if (message != "")
+				chatClient.sendMessage(selectedChatRoomID, message);
 		}
 		// find online user
-		if (e.getSource() == findFriendsButton) {
+		else if (e.getSource() == findFriendsButton) {
 			new ClientSearchFriendGUI();
 		}
 		// find groups
-		if (e.getSource() == findGroupsButton) {
+		else if (e.getSource() == findGroupsButton) {
 			new ClientSearchGroupGUI(chatClient);
-		}
-		if (e.getSource() == seeGroupMemberButton) {
+		} else if (e.getSource() == seeGroupMemberButton) {
 			new ClientSeeGroupMember();
 		}
 		// logout
 		// jump to the login page
-		if (e.getSource() == logoutButton) {
+		else if (e.getSource() == logoutButton) {
 			chatClient.logout();
 			this.dispose();
 			new ClientLoginGUI(chatClient);
-		}
-		if (e.getSource() == exitButton) {
+		} else if (e.getSource() == exitButton) {
 			chatClient.logout();
 			System.exit(0);
 		}
@@ -364,5 +368,15 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 			friendListModel.addChatRoom(room);
 		else
 			groupListModel.addChatRoom(room);
+	}
+
+	public void addMessage(ChatMessage message) {
+		// If the message belongs to the selected ChatRoom, then immediately display it
+		if (selectedChatRoomID == message.cid) {
+			textArea.append(message.displayMessage());
+			textArea.setCaretPosition(textArea.getDocument().getLength());
+		}
+		friendListModel.addMessage(message, selectedChatRoomID);
+		groupListModel.addMessage(message, selectedChatRoomID);
 	}
 }

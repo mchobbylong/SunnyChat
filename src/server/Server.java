@@ -3,6 +3,7 @@ package server;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -99,6 +100,10 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		return allUsers;
 	}
 
+	private ArrayList<User> getChatRoomMembers(int cid) {
+		return UserModel.getChatRoomMembers(cid);
+	}
+
 	private void pushAllChatRooms(UserModel userModel, ClientIF client) {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
@@ -120,6 +125,21 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 				ChatRoom room = roomModel.getInstance();
 				room.title = roomModel.getTitle(c.user.uid);
 				c.client.receiveChatRoom(room);
+				return null;
+			}
+		});
+	}
+
+	private void pushMessage(ChatMessageModel messageModel) {
+		threadPool.submit(new Callable<Void>() {
+			public Void call() throws Exception {
+				ChatMessage message = messageModel.getInstance();
+				for (User member : getChatRoomMembers(messageModel.cid)) {
+					// Check if the member is online
+					ChatClient c = onlineUsers.get(member.uid);
+					if (c != null)
+						c.client.receiveMessage(message);
+				}
 				return null;
 			}
 		});
@@ -239,9 +259,17 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		pushChatRoom(onlineUsers.get(user.uid), chatroom);
 
 		// Announce the entered user to all members in the chatroom
-		// ChatMessageModel messageModel = new ChatMessageModel(chatroom.cid,
-		// ChatMessageModel.SYSTEM_USER,
-		// String.format("User %s has joined the chat room.", user.userName));
-		// pushMessage(messageModel.getInstance());
+		try {
+			sendMessage(UserModel.SYSTEM_USER, chatroom.cid,
+					String.format("User %s has entered the chat room.", user.userName));
+		} catch (InvalidSessionException e) {
+			System.out.println("Warning: Invalid session for SYSTEM_USER");
+		}
+	}
+
+	@Override
+	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException {
+		ChatMessageModel messageModel = new ChatMessageModel(cid, user, message);
+		pushMessage(messageModel);
 	}
 }
