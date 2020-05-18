@@ -46,12 +46,12 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 
 	public boolean register(String userName, String password) {
 		try {
-			int uid = serverIF.register(userName, password);
-			if (uid != 0) {
-				return true;
-			}
+			serverIF.register(userName, password);
+			return true;
 		} catch (RemoteException e) {
 			raiseFatalError(e);
+		} catch (DuplicatedObjectException e) {
+			return false;
 		}
 		return false;
 	}
@@ -94,7 +94,7 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 
 	public void logout() {
 		try {
-			serverIF.leaveChat(me.userName);
+			serverIF.logout(me);
 		} catch (RemoteException e) {
 			raiseFatalError(e);
 		} catch (InvalidSessionException e) {

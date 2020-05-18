@@ -16,7 +16,7 @@ public class Session {
 	private static ReadWriteLock lock = new ReentrantReadWriteLock();
 
 	static {
-		createSession(UserModel.SYSTEM_USER);
+		createSession(UserModel.SERVER_USER);
 	}
 
 	/**
@@ -53,11 +53,30 @@ public class Session {
 	public static void validateSession(User user) throws InvalidSessionException {
 		lock.readLock().lock();
 		try {
-			if (sessionIdToUid.containsKey(user.sessionId)) {
+			Integer uid = sessionIdToUid.get(user.sessionId);
+			if (uid == null || uid.intValue() != user.uid) {
+				System.out.println(String.format("Warning: Invalid session detected from user %s.", user.userName));
 				throw new InvalidSessionException("The current session is expired. Please re-login.");
 			}
 		} finally {
 			lock.readLock().unlock();
 		}
+		return;
+	}
+
+	/**
+	 * Destroy the session for this user.
+	 *
+	 * @param user
+	 */
+	public static void destroySession(User user) {
+		lock.writeLock().lock();
+		try {
+			sessionIdToUid.remove(user.sessionId);
+			uidToSessionId.remove(user.uid);
+		} finally {
+			lock.writeLock().unlock();
+		}
+		return;
 	}
 }

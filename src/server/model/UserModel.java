@@ -1,8 +1,10 @@
 package server.model;
 
 import server.DatabaseHelper;
+import server.TimeUtil;
 import common.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,7 +14,7 @@ public class UserModel {
 	public String password;
 	public String lastOnline;
 
-	public static User SYSTEM_USER = new User(null, "System");
+	public static User SERVER_USER = new User(null, "Server");
 
 	/**
 	 * Create a new user. Must call method create() later.
@@ -33,7 +35,7 @@ public class UserModel {
 		this.uid = uid;
 		this.userName = (String) row.get("username");
 		this.password = (String) row.get("password");
-		this.lastOnline = (String) row.get("last_online");
+		this.lastOnline = TimeUtil.formatDate((Timestamp) row.get("last_online"));
 	}
 
 	/**
@@ -54,7 +56,7 @@ public class UserModel {
 		this.uid = (int) row.get("uid");
 		this.userName = (String) row.get("username");
 		this.password = (String) row.get("password");
-		this.lastOnline = (String) row.get("last_online");
+		this.lastOnline = TimeUtil.formatDate((Timestamp) row.get("last_online"));
 	}
 
 	/**
@@ -74,6 +76,12 @@ public class UserModel {
 		// Then insert the new user, and get the new uid
 		sql = String.format("insert into user (username, password) values ('%s', '%s')", userName, password);
 		this.uid = DatabaseHelper.insert(sql);
+	}
+
+	public void update() {
+		String sql = String.format("update user set userName='%s', password='%s', last_online='%s' where uid=%d",
+				userName, password, lastOnline, uid);
+		DatabaseHelper.execute(sql);
 	}
 
 	public static ArrayList<User> getChatRoomMembers(int cid) {

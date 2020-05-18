@@ -4,7 +4,6 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -65,39 +64,6 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Update all clients by remotely invoking their updateUserList RMI method
-	 */
-	private void updateUserList() {
-		threadPool.submit(new Callable<Void>() {
-			public Void call() throws Exception {
-				String[] currentUsers = getUserList();
-				for (ChatClient c : chatters) {
-					// try {
-					// c.getClient().updateUserList(currentUsers);
-					// } catch (RemoteException e) {
-					// System.out.println("Warning: failed to update user list of " + c.name);
-					// }
-				}
-				return null;
-			}
-		});
-	}
-
-	/**
-	 * generate a String array of current users
-	 *
-	 * @return
-	 */
-	private String[] getUserList() {
-		// generate an array of current users
-		String[] allUsers = new String[chatters.size()];
-		for (int i = 0; i < allUsers.length; i++) {
-			allUsers[i] = chatters.elementAt(i).getName();
-		}
-		return allUsers;
 	}
 
 	private ArrayList<User> getChatRoomMembers(int cid) {
@@ -179,25 +145,6 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	}
 
 	/**
-	 * remove a client from the list, notify everyone
-	 */
-	@Override
-	public void leaveChat(String userName) throws RemoteException {
-
-		for (ChatClient c : chatters) {
-			if (c.getName().equals(userName)) {
-				System.out.println(line + userName + " left the chat session");
-				System.out.println(new Date(System.currentTimeMillis()));
-				chatters.remove(c);
-				break;
-			}
-		}
-		if (!chatters.isEmpty()) {
-			updateUserList();
-		}
-	}
-
-	/**
 	 * A method to send a private message to selected clients The integer array
 	 * holds the indexes (from the chatters vector) of the clients to send the
 	 * message to
@@ -234,22 +181,37 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		// Add to online user list
 		onlineUsers.put(userModel.uid, c);
 
+		// Print message
+		System.out.println(String.format("[%s] User %s is logged in.", TimeUtil.getCurrentTime(), userName));
+
 		// Generate session for the user
 		Session.createSession(user);
 		return user;
 	}
 
 	@Override
-	public int register(String userName, String password) throws RemoteException {
+	public void logout(User user) throws RemoteException, InvalidSessionException {
+		Session.validateSession(user);
+		Session.destroySession(user);
+		onlineUsers.remove(user.uid);
+		String currentTime = TimeUtil.getCurrentTime();
+		try {
+			UserModel userModel = new UserModel(user.uid);
+			userModel.lastOnline = currentTime;
+			userModel.update();
+		} catch (ObjectNotFoundException e) {
+			System.out.println(String.format("Warning: %s", e.getCause().getMessage()));
+		}
+		System.out.println(String.format("[%s] User %s is logged out.", currentTime, user.userName));
+	}
+
+	@Override
+	public void register(String userName, String password) throws RemoteException, DuplicatedObjectException {
 		UserModel user = new UserModel();
 		user.userName = userName;
 		user.password = password;
-		try {
-			user.create();
-			return user.uid;
-		} catch (DuplicatedObjectException e) {
-			return 0;
-		}
+		user.create();
+		System.out.println(String.format("[%s] User %s is registered.", TimeUtil.getCurrentTime(), userName));
 	}
 
 	@Override
@@ -260,7 +222,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 
 		// Announce the entered user to all members in the chatroom
 		try {
-			sendMessage(UserModel.SYSTEM_USER, chatroom.cid,
+			sendMessage(UserModel.SERVER_USER, chatroom.cid,
 					String.format("User %s has entered the chat room.", user.userName));
 		} catch (InvalidSessionException e) {
 			System.out.println("Warning: Invalid session for SYSTEM_USER");

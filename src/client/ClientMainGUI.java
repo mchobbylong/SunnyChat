@@ -158,11 +158,9 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 			public void valueChanged(ListSelectionEvent e) {
 				JList<ChatRoom> list = (JList<ChatRoom>) e.getSource();
 				if (list.getValueIsAdjusting()) {
-					System.out.println("room adjusting");
 					return;
 				}
 				if (!list.isSelectionEmpty()) {
-					System.out.println("room changed");
 					// Display messages in the ChatRoom
 					ChatRoomListModel model = (ChatRoomListModel) list.getModel();
 					ChatRoom selectedChatRoom = model.getElementAt(list.getSelectedIndex());

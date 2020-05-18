@@ -1,14 +1,14 @@
 package server.model;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 
 import common.User;
 import common.ChatMessage;
 import server.DatabaseHelper;
+import server.TimeUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 
 public class ChatMessageModel {
 	public int mid;
@@ -26,15 +26,11 @@ public class ChatMessageModel {
 		fromUID = user.uid;
 		fromName = user.userName;
 		this.message = message;
-		this.time = getCurrentTime();
+		this.time = TimeUtil.getCurrentTime();
 		String sql = String.format(
 				"insert into chatmessage (cid, from_uid, from_name, message, time) values (%d, %d, '%s', '%s', '%s')",
-				cid, fromUID, fromName, message, time);
+				cid, fromUID, fromName, StringEscapeUtils.escapeSql(message), time);
 		this.mid = DatabaseHelper.insert(sql);
-	}
-
-	public static String getCurrentTime() {
-		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 	}
 
 	public ChatMessage getInstance() {
@@ -60,7 +56,7 @@ public class ChatMessageModel {
 			Integer fromUID = (Integer) row.get("from_uid");
 			String fromName = (String) row.get("from_name");
 			String message = (String) row.get("message");
-			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format((Timestamp) row.get("time"));
+			String time = TimeUtil.formatDate((Timestamp) row.get("time"));
 			messages.add(new ChatMessage(cid, fromUID, fromName, message, time));
 		}
 		return messages;
