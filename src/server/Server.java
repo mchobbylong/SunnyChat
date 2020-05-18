@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
@@ -156,7 +155,9 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	}
 
 	@Override
-	public void joinGroup(int groupNumber, User user) throws RemoteException, DuplicatedObjectException {
+	public void joinGroup(int groupNumber, User user)
+			throws RemoteException, InvalidSessionException, DuplicatedObjectException {
+		Session.validateSession(user);
 		ChatRoomModel chatroom = ChatRoomModel.getGroupChat(groupNumber);
 		chatroom.addUser(user);
 		pushChatRoom(onlineUsers.get(user.uid), chatroom);
@@ -172,6 +173,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 
 	@Override
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException {
+		Session.validateSession(user);
 		ChatMessageModel messageModel = new ChatMessageModel(cid, user, message);
 		pushMessage(messageModel);
 	}

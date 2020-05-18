@@ -17,7 +17,8 @@ public interface ServerIF extends Remote {
 
 	public void logout(User user) throws RemoteException, InvalidSessionException;
 
-	public void joinGroup(int groupNumber, User user) throws RemoteException, DuplicatedObjectException;
+	public void joinGroup(int groupNumber, User user)
+			throws RemoteException, InvalidSessionException, DuplicatedObjectException;
 
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException;
 }

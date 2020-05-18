@@ -60,7 +60,7 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		try {
 			serverIF.joinGroup(groupNumber, me);
 			return true;
-		} catch (RemoteException e) {
+		} catch (RemoteException | InvalidSessionException e) {
 			raiseFatalError(e);
 		} catch (DuplicatedObjectException e) {
 			return false;
@@ -86,40 +86,6 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		}
 	}
 
-	// =====================================================================
-	/**
-	 * Receive a string from the chat server this is the clients RMI method, which
-	 * will be used by the server to send messages to us
-	 */
-	@Override
-	public void messageFromServer(String message) throws RemoteException {
-		// System.out.println(message);
-		// guiLock.readLock().lock();
-		// try {
-		// chatGUI.textArea.append(message);
-		// // make the gui display the last appended text, ie scroll to bottom
-		// chatGUI.textArea.setCaretPosition(chatGUI.textArea.getDocument().getLength());
-		// } finally {
-		// guiLock.readLock().unlock();
-		// }
-	}
-
-	// /**
-	// * A method to update the display of users currently connected to the server
-	// */
-	// @Override
-	// public void updateUserList(String[] currentUsers) throws RemoteException {
-	// guiLock.readLock().lock();
-	// try {
-	// chatGUI.userPanel.remove(chatGUI.clientPanel);
-	// chatGUI.setClientPanel(currentUsers);
-	// chatGUI.clientPanel.repaint();
-	// chatGUI.clientPanel.revalidate();
-	// } finally {
-	// guiLock.readLock(W).unlock();
-	// }
-	// }
-
 	/**
 	 * Receive a new ChatRoom from server
 	 */
@@ -144,7 +110,7 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 	}
 
 	public void raiseFatalError(Exception e) {
-		JOptionPane.showMessageDialog(chatGUI, e.getCause().getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(null, e.getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
 		System.exit(1);
 	}
 
