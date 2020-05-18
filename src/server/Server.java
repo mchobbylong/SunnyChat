@@ -177,4 +177,13 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		ChatMessageModel messageModel = new ChatMessageModel(cid, user, message);
 		pushMessage(messageModel);
 	}
+
+	@Override
+	public String[] getChatRoomMembers(User user, int cid) throws RemoteException, InvalidSessionException {
+		Session.validateSession(user);
+		ArrayList<String> names = new ArrayList<>();
+		for (User member : getChatRoomMembers(cid))
+			names.add(member.userName);
+		return (String[]) names.toArray(new String[names.size()]);
+	}
 }

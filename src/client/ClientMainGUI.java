@@ -293,8 +293,10 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		// find groups
 		else if (e.getSource() == findGroupsButton) {
 			new ClientSearchGroupGUI(chatClient);
-		} else if (e.getSource() == seeGroupMemberButton) {
-			new ClientSeeGroupMember();
+		}
+		// view group members
+		else if (e.getSource() == seeGroupMemberButton) {
+			new ClientSeeGroupMember(chatClient.getChatRoomMembers(selectedChatRoomID));
 		}
 		// logout
 		// jump to the login page

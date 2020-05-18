@@ -76,6 +76,15 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		}
 	}
 
+	public String[] getChatRoomMembers(int cid) {
+		try {
+			return serverIF.getChatRoomMembers(me, cid);
+		} catch (RemoteException | InvalidSessionException e) {
+			raiseFatalError(e);
+		}
+		return new String[] {};
+	}
+
 	public void logout() {
 		try {
 			serverIF.logout(me);

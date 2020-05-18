@@ -21,4 +21,6 @@ public interface ServerIF extends Remote {
 			throws RemoteException, InvalidSessionException, DuplicatedObjectException;
 
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException;
+
+	public String[] getChatRoomMembers(User user, int cid) throws RemoteException, InvalidSessionException;
 }
