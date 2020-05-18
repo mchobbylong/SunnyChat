@@ -13,4 +13,21 @@ public class User implements Serializable {
 		this.uid = uid;
 		this.userName = userName;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (obj instanceof User) {
+			Integer objUID = ((User) obj).uid;
+			if (this.uid == null && uid == null)
+				return true;
+			if (this.uid != null)
+				return this.uid.intValue() == objUID;
+			return objUID.intValue() == this.uid;
+		}
+		return false;
+	}
 }

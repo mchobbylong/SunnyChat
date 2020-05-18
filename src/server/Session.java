@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Session {
-	private static HashMap<Long, Integer> sessionIdToUid = new HashMap<>();
+	private static HashMap<Long, User> sessionIdToUser = new HashMap<>();
 	private static HashMap<Integer, Long> uidToSessionId = new HashMap<>();
 	private static Random rand = new Random();
 	private static ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -29,14 +29,14 @@ public class Session {
 		try {
 			long sessionId = rand.nextLong();
 			// Session collision detection
-			Integer temp = sessionIdToUid.get(sessionId);
-			while (temp != null && temp != user.uid) {
+			User temp = sessionIdToUser.get(sessionId);
+			while (temp != null && !temp.equals(user)) {
 				sessionId = rand.nextLong();
-				temp = sessionIdToUid.get(sessionId);
+				temp = sessionIdToUser.get(sessionId);
 			}
-			sessionIdToUid.put(sessionId, user.uid);
+			sessionIdToUser.put(sessionId, user);
 			if (uidToSessionId.containsKey(user.uid))
-				sessionIdToUid.remove(uidToSessionId.get(user.uid));
+				sessionIdToUser.remove(uidToSessionId.get(user.uid));
 			uidToSessionId.put(user.uid, sessionId);
 			user.sessionId = sessionId;
 		} finally {
@@ -53,8 +53,8 @@ public class Session {
 	public static void validateSession(User user) throws InvalidSessionException {
 		lock.readLock().lock();
 		try {
-			Integer uid = sessionIdToUid.get(user.sessionId);
-			if (uid == null || uid.intValue() != user.uid) {
+			User storedUser = sessionIdToUser.get(user.sessionId);
+			if (storedUser == null || !storedUser.equals(user)) {
 				System.out.println(String.format("Warning: Invalid session detected from user %s.", user.userName));
 				throw new InvalidSessionException("The current session is expired. Please re-login.");
 			}
@@ -72,7 +72,7 @@ public class Session {
 	public static void destroySession(User user) {
 		lock.writeLock().lock();
 		try {
-			sessionIdToUid.remove(user.sessionId);
+			sessionIdToUser.remove(user.sessionId);
 			uidToSessionId.remove(user.uid);
 		} finally {
 			lock.writeLock().unlock();
