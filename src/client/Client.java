@@ -18,14 +18,19 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 	ClientMainGUI chatGUI;
 	User me;
 	private ReadWriteLock guiLock = new ReentrantReadWriteLock();
-	private String hostName = "localhost";
-	private String serviceName = "GroupChatService";
+	private static String hostName = "localhost";
+	private static String port = "1099";
+	private static String serviceName = "GroupChatService";
 	protected ServerIF serverIF;
 	protected boolean connectionProblem = false;
 
-	public Client() throws Exception {
+	public Client(String hostName, String port) throws Exception {
 		super();
-		serverIF = (ServerIF) Naming.lookup("rmi://" + hostName + "/" + serviceName);
+		serverIF = (ServerIF) Naming.lookup("rmi://" + hostName + ":" + port + "/" + serviceName);
+	}
+
+	public Client() throws Exception {
+		this(hostName, port);
 	}
 
 	public boolean login(String userName, String password) {
@@ -179,7 +184,11 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 
 	public static void main(String[] args) {
 		try {
-			Client client = new Client();
+			Client client;
+			if (args.length == 2)
+				client = new Client(args[0], args[1]);
+			else
+				client = new Client();
 			new ClientLoginGUI(client);
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "The server is currently unavailable, please try again later!", "Error",
