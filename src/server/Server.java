@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,14 +14,13 @@ import java.util.concurrent.Callable;
 import client.ClientIF;
 import server.model.*;
 import common.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Server extends UnicastRemoteObject implements ServerIF {
 	String line = "---------------------------------------------\n";
 	private Vector<ChatClient> chatters;
 	private static final long serialVersionUID = 1L;
 
-	private ConcurrentHashMap<Integer, ChatClient> onlineUsers;
+	private Hashtable<Integer, ChatClient> onlineUsers;
 
 	// asynchronized thread pool
 	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
@@ -29,7 +29,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	public Server() throws RemoteException {
 		super();
 		chatters = new Vector<ChatClient>(10, 1);
-		onlineUsers = new ConcurrentHashMap<>();
+		onlineUsers = new Hashtable<>();
 	}
 
 	// -----------------------------------------------------------
