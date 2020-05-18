@@ -347,8 +347,6 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 					}
 					out.close();
 					input.close();
-					String successfulHint = "I have upload " + f.getName() + "\n";
-					chatClient.updateChat(successfulHint);
 				}
 				JOptionPane.showMessageDialog(null, "Upload successfully. :)", "Hint", JOptionPane.INFORMATION_MESSAGE);
 			} catch (FileNotFoundException e1) {

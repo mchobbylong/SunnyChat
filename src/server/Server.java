@@ -15,8 +15,6 @@ import server.model.*;
 import common.*;
 
 public class Server extends UnicastRemoteObject implements ServerIF {
-	String line = "---------------------------------------------\n";
-	private Vector<ChatClient> chatters;
 	private static final long serialVersionUID = 1L;
 
 	private Hashtable<Integer, ChatClient> onlineUsers;
@@ -27,7 +25,6 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	// Constructor
 	public Server() throws RemoteException {
 		super();
-		chatters = new Vector<ChatClient>(10, 1);
 		onlineUsers = new Hashtable<>();
 	}
 
@@ -105,62 +102,6 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 					ChatClient c = onlineUsers.get(member.uid);
 					if (c != null)
 						c.client.receiveMessage(message);
-				}
-				return null;
-			}
-		});
-	}
-
-	/**
-	 * Send a message to all users
-	 *
-	 * @param newMessage
-	 */
-	public void sendToAll(String newMessage) {
-		threadPool.submit(new Callable<Void>() {
-			public Void call() throws Exception {
-				for (ChatClient c : chatters) {
-					try {
-						c.client.messageFromServer(newMessage);
-					} catch (RemoteException e) {
-						e.printStackTrace();
-					}
-				}
-				return null;
-			}
-		});
-	}
-
-	// -----------------------------------------------------------
-	/*
-	 * REMOTE METHODS
-	 */
-
-	/**
-	 * Send a string ( the latest post, mostly ) to all connected clients
-	 */
-	public void updateChat(String name, String nextPost) throws RemoteException {
-		String message = name + " : " + nextPost + "\n";
-		sendToAll(message);
-	}
-
-	/**
-	 * A method to send a private message to selected clients The integer array
-	 * holds the indexes (from the chatters vector) of the clients to send the
-	 * message to
-	 */
-	@Override
-	public void sendPM(int[] privateGroup, String privateMessage) throws RemoteException {
-		threadPool.submit(new Callable<Void>() {
-			public Void call() throws Exception {
-				ChatClient pc;
-				for (int i : privateGroup) {
-					pc = chatters.elementAt(i);
-					try {
-						pc.client.messageFromServer(privateMessage);
-					} catch (RemoteException e) {
-						System.out.println("Warning: failed to send message to " + pc.getName());
-					}
 				}
 				return null;
 			}

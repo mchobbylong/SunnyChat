@@ -76,22 +76,6 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		}
 	}
 
-	public void updateChat(String message) {
-		try {
-			serverIF.updateChat(me.userName, message);
-		} catch (RemoteException | InvalidSessionException e) {
-			raiseFatalError(e);
-		}
-	}
-
-	public void sendPM(int[] privateList, String message) {
-		try {
-			serverIF.sendPM(privateList, message);
-		} catch (RemoteException | InvalidSessionException e) {
-			raiseFatalError(e);
-		}
-	}
-
 	public void logout() {
 		try {
 			serverIF.logout(me);
