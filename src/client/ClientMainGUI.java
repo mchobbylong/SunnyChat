@@ -25,7 +25,6 @@ import common.*;
 public class ClientMainGUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	private JPanel textPanel;
 	private JTextArea textField;
 	private String message;
 	private static Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
