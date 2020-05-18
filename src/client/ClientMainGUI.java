@@ -107,19 +107,16 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		c.add(fileButton);
 
 		// receive message
-		textArea = new JTextArea(14, 34);
+		textArea = new JTextArea(8, 34);
 		textArea.setMargin(new Insets(10, 10, 10, 10));
 		textArea.setFont(msgFont);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setEditable(false);
+		textArea.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
 		JScrollPane scrollPane = new JScrollPane(textArea);
-		textPanel = new JPanel();
-		textPanel.add(scrollPane);
-		textPanel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 15));
-
-		textArea.setBounds(200, 50, 580, 220);
-		c.add(textArea);
+		scrollPane.setBounds(200, 50, 580, 220);
+		c.add(scrollPane);
 
 		// Add my friends panel
 		friendPanel = new JPanel(new BorderLayout());
