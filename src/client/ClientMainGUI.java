@@ -42,7 +42,8 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 	private Point frameTemp;// relative location of mouse
 	private Point frameLoc;// frame location
 
-	protected JTextArea textArea;
+	private Integer selectedChatRoomID = null;
+	private JTextArea textArea;
 
 	// My Friends Panel
 	private JPanel friendPanel;
@@ -150,11 +151,44 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		groupList.setFont(msgFont);
 		groupPanel.add(new JScrollPane(groupList));
 
+		// Add listener to switch between ChatRooms and corresponding messages
+		ListSelectionListener switchChatRoomListener = new ListSelectionListener() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				JList<ChatRoom> list = (JList<ChatRoom>) e.getSource();
+				if (list.getValueIsAdjusting()) {
+					System.out.println("room adjusting");
+					return;
+				}
+				if (!list.isSelectionEmpty()) {
+					System.out.println("room changed");
+					// Display messages in the ChatRoom
+					ChatRoomListModel model = (ChatRoomListModel) list.getModel();
+					ChatRoom selectedChatRoom = model.getElementAt(list.getSelectedIndex());
+					selectedChatRoomID = selectedChatRoom.cid;
+					textArea.setText(selectedChatRoom.messages);
+					// Focus the textarea to the bottom (show the latest message)
+					textArea.setCaretPosition(textArea.getDocument().getLength());
+					// Clear unread count
+					model.clearUnreadCount(selectedChatRoomID);
+					// Unselect the other list
+					if (list == friendList)
+						groupList.clearSelection();
+					else
+						friendList.clearSelection();
+				}
+			}
+		};
+		friendList.addListSelectionListener(switchChatRoomListener);
+		groupList.addListSelectionListener(switchChatRoomListener);
+
 		// Add listener to set the state of seeGroupMemberButton
 		// - No group is selected: seeGroupMemberButton is disabled
 		// - One group is selected: seeGroupMemberButton is enabled
 		groupList.addListSelectionListener(new ListSelectionListener() {
 			@SuppressWarnings("unchecked")
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				JList<ChatRoom> list = (JList<ChatRoom>) e.getSource();
 				if (list.isSelectionEmpty()) {

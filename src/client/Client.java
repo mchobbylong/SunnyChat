@@ -101,15 +101,15 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 	 */
 	@Override
 	public void messageFromServer(String message) throws RemoteException {
-		System.out.println(message);
-		guiLock.readLock().lock();
-		try {
-			chatGUI.textArea.append(message);
-			// make the gui display the last appended text, ie scroll to bottom
-			chatGUI.textArea.setCaretPosition(chatGUI.textArea.getDocument().getLength());
-		} finally {
-			guiLock.readLock().unlock();
-		}
+		// System.out.println(message);
+		// guiLock.readLock().lock();
+		// try {
+		// chatGUI.textArea.append(message);
+		// // make the gui display the last appended text, ie scroll to bottom
+		// chatGUI.textArea.setCaretPosition(chatGUI.textArea.getDocument().getLength());
+		// } finally {
+		// guiLock.readLock().unlock();
+		// }
 	}
 
 	// /**

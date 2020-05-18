@@ -60,17 +60,31 @@ public class ChatRoomListModel extends AbstractListModel<ChatRoom> {
 		fireIntervalAdded(this, size, size);
 	}
 
-	public void addMessage(ChatMessage message) {
+	public void addMessage(ChatMessage message, Integer selectedChatRoomID) {
 		rLock.lock();
-		int index = -1;
 		try {
 			ChatRoom room = rooms.get(message.cid);
 			room.addMessage(message);
-			index = roomIndex.indexOf(message.cid);
+			if (selectedChatRoomID == message.cid)
+				room.unreadCount = 0;
+			int index = roomIndex.indexOf(message.cid);
+			if (index > -1)
+				fireContentsChanged(this, index, index);
 		} finally {
 			rLock.unlock();
 		}
-		if (index > -1)
-			fireContentsChanged(this, index, index);
+	}
+
+	public void clearUnreadCount(Integer cid) {
+		rLock.lock();
+		try {
+			ChatRoom room = rooms.get(cid);
+			room.unreadCount = 0;
+			int index = roomIndex.indexOf(cid);
+			if (index > -1)
+				fireContentsChanged(this, index, index);
+		} finally {
+			rLock.unlock();
+		}
 	}
 }
