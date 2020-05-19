@@ -1,7 +1,9 @@
 package server;
 
+import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.server.RMISocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -16,6 +18,12 @@ import common.*;
 public class Server extends UnicastRemoteObject implements ServerIF {
 	private static final long serialVersionUID = 1L;
 
+	// Server configuration
+	private static String hostName = "localhost";
+	private static int registryPort = 1099;
+	private static int dataPort = 0;
+	private static String serviceName = "SunnyChatService";
+
 	private Hashtable<Integer, ChatClient> onlineUsers;
 
 	// asynchronized thread pool
@@ -27,38 +35,43 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		onlineUsers = new Hashtable<>();
 	}
 
-	// -----------------------------------------------------------
-	/**
-	 * LOCAL METHODS
-	 */
 	public static void main(String[] args) {
-		startRMIRegistry();
-		String hostName = "localhost";
-		String serviceName = "GroupChatService";
-
-		if (args.length == 2) {
+		// Get arguments
+		if (args.length == 3) {
 			hostName = args[0];
-			serviceName = args[1];
+			registryPort = Integer.parseInt(args[1]);
+			dataPort = Integer.parseInt(args[2]);
+			System.out.printf("Get arguments: hostName=%s, registryPort=%d, dataPort=%d\n", hostName, registryPort,
+					dataPort);
+		}
+
+		// Start RMI registry
+		String lanHostIP = "";
+		try {
+			lanHostIP = InetAddress.getLocalHost().getHostAddress();
+		} catch (Exception e) {
+			System.out.printf("Fatal Error: Failed to get the LAN IP.");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		System.setProperty("java.rmi.server.hostname", hostName);
+		try {
+			RMISocketFactory.setSocketFactory(new SMRMISocket(dataPort));
+			java.rmi.registry.LocateRegistry.createRegistry(registryPort);
+		} catch (Exception e) {
+			System.out.println("Fatal Error: Failed to bind a port to RMI registry.");
+			e.printStackTrace();
+			System.exit(1);
 		}
 
 		try {
 			ServerIF server = new Server();
-			Naming.rebind("rmi://" + hostName + "/" + serviceName, server);
-			System.out.println("Group Chat RMI Server is running...");
+			Naming.rebind(String.format("rmi://%s:%d/%s", lanHostIP, registryPort, serviceName), server);
+			System.out.println("Sunny Chat RMI service is now running...");
 		} catch (Exception e) {
-			System.out.println("Server had problems starting");
-		}
-	}
-
-	/**
-	 * Start the RMI Registry
-	 */
-	public static void startRMIRegistry() {
-		try {
-			java.rmi.registry.LocateRegistry.createRegistry(1099);
-			System.out.println("RMI Server ready");
-		} catch (RemoteException e) {
+			System.out.println("Fatal Error: Failed to rebind server remote object.");
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 
