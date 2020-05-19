@@ -181,7 +181,7 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 	public static void main(String[] args) {
 		try {
 			Client client;
-			if (args.length == 3) {
+			if (args.length == 2) {
 				hostName = args[0];
 				registryPort = Integer.parseInt(args[1]);
 				System.out.printf("Get arguments: hostName=%s, registryPort=%d\n", hostName, registryPort);
