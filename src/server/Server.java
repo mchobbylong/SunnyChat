@@ -95,7 +95,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 					room.title = roomModel.getTitle(userModel.uid);
 					for (ChatMessage message : ChatMessageModel.getRoomRelatedMessages(room.cid, userModel.lastOnline))
 						room.addMessage(message);
-					client.receiveChatRoom(room);
+					try {
+						client.receiveChatRoom(room);
+					} catch (RemoteException e) {
+						forcedLogout(userModel.uid);
+						return null;
+					}
 				}
 				return null;
 			}
@@ -109,7 +114,11 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 			public Void call() throws Exception {
 				ChatRoom room = roomModel.getInstance();
 				room.title = roomModel.getTitle(c.user.uid);
-				c.client.receiveChatRoom(room);
+				try {
+					c.client.receiveChatRoom(room);
+				} catch (RemoteException e) {
+					forcedLogout(c.user.uid);
+				}
 				return null;
 			}
 		});
@@ -123,7 +132,11 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 					// Check if the member is online
 					ChatClient c = onlineUsers.get(member.uid);
 					if (c != null)
-						c.client.receiveMessage(message);
+						try {
+							c.client.receiveMessage(message);
+						} catch (RemoteException e) {
+							forcedLogout(c.user.uid);
+						}
 				}
 				return null;
 			}
@@ -142,11 +155,18 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 				is.close();
 				c.client.receiveFile(file.getName(), rawFile);
 			} catch (RemoteException e) {
-				// forcedLogout(user.uid);
+				forcedLogout(user.uid);
 			} catch (IOException e) {
 				System.out.printf("Warning: Failed to push file %s to user.\n", filePath);
 			}
 		}
+	}
+
+	private void forcedLogout(int uid) {
+		ChatClient c = onlineUsers.remove(uid);
+		if (c != null)
+			System.out.printf("[%s] User %s is forced to log out (due to connection error).\n",
+					TimeUtil.getCurrentTime(), c.user.userName);
 	}
 
 	@Override
@@ -259,6 +279,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		try {
 			invitee.client.receiveFriendInvitation(sentUser);
 		} catch (RemoteException e) {
+			forcedLogout(uid);
 			throw new ObjectNotFoundException(String.format("User with uid of %d is offline.", uid));
 		}
 	}
