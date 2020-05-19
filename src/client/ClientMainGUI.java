@@ -7,18 +7,13 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.*;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
+// import javax.swing.filechooser.FileNameExtensionFilter;
 
 import common.*;
 
@@ -97,11 +92,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 
 		// send file button
 		fileButton = new JButton(new ImageIcon("image/chatroom/sendFile_btn.png"));
-		fileButton.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent event) {
-				eventOnImport(new JButton());
-			}
-		});
+		fileButton.addActionListener(this);
 		fileButton.setBounds(616, 350, 164, 33);
 		c.add(fileButton);
 
@@ -280,7 +271,7 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 			}
 			message = textField.getText();
 			textField.setText("");
-			if (message != "")
+			if (!"".equals(message))
 				chatClient.sendMessage(selectedChatRoomID, message);
 		}
 		// find online user
@@ -304,56 +295,31 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == exitButton) {
 			chatClient.logout();
 			System.exit(0);
+		} else if (e.getSource() == fileButton) {
+			if (selectedChatRoomID == null) {
+				JOptionPane.showMessageDialog(this, "You have not choose a chat room yet :(", "Hint",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			uploadFile();
 		}
 	}
 
-	/* file transportation */
-	private void eventOnImport(JButton fileButton) {
+	private void uploadFile() {
 		JFileChooser chooser = new JFileChooser();
-		chooser.setMultiSelectionEnabled(true);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("war", "xml", "txt", "doc", "docx", "jpg", "png");
-		chooser.setFileFilter(filter);
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		// FileNameExtensionFilter filter = new FileNameExtensionFilter("war", "xml",
+		// "txt", "doc", "docx", "jpg", "png");
+		// chooser.setFileFilter(filter);
 		int returnVal = chooser.showOpenDialog(fileButton);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			File[] arrfiles = chooser.getSelectedFiles();
-			if (arrfiles == null || arrfiles.length == 0) {
-				return;
-			}
-			FileInputStream input = null;
-			FileOutputStream out = null;
-			String save_path = "./src/client/sourceFile"; // store path
+			File file = chooser.getSelectedFile();
 			try {
-				for (File f : arrfiles) {
-					File dir = new File(save_path);
-					File[] fs = dir.listFiles();
-					HashSet<String> set = new HashSet<String>();
-					for (File file : fs) {
-						set.add(file.getName());// get the file name
-					}
-					// p.s. 閿熸枻鎷烽敓绲爁閿熸枻鎷烽敓鏂ゆ嫹鍒犻敓鏂ゆ嫹 閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
-					if (set.contains(f.getName())) {// indicate whether the file has been existed in the system
-						JOptionPane.showMessageDialog(new JDialog(),
-								f.getName() + ":The selected file is already exist:(");
-						return;
-					}
-					input = new FileInputStream(f);
-					byte[] buffer = new byte[1024];
-					File des = new File(save_path, f.getName());
-					out = new FileOutputStream(des);
-					int len = 0;
-					while (-1 != (len = input.read(buffer))) {
-						out.write(buffer, 0, len);
-					}
-					out.close();
-					input.close();
-				}
-				JOptionPane.showMessageDialog(null, "Upload successfully. :)", "Hint", JOptionPane.INFORMATION_MESSAGE);
-			} catch (FileNotFoundException e1) {
-				JOptionPane.showMessageDialog(null, "Failed to upload. :(", "Hint", JOptionPane.ERROR_MESSAGE);
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				JOptionPane.showMessageDialog(null, "Failed to upload. :(", "Hint", JOptionPane.ERROR_MESSAGE);
-				e1.printStackTrace();
+				chatClient.sendFile(selectedChatRoomID, file);
+				JOptionPane.showMessageDialog(this, "Successfully upload the file :D", "Hint",
+						JOptionPane.INFORMATION_MESSAGE);
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(this, "Failed to upload the file :(", "Hint", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}

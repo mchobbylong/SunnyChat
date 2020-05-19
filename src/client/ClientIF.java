@@ -11,4 +11,6 @@ public interface ClientIF extends Remote {
 	public void receiveMessage(ChatMessage message) throws RemoteException;
 
 	public void receiveFriendInvitation(User user) throws RemoteException;
+
+	public void receiveFile(String fileName, byte[] fileContent) throws RemoteException;
 }

@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -31,4 +32,7 @@ public interface ServerIF extends Remote {
 			throws RemoteException, InvalidSessionException, DuplicatedObjectException, ObjectNotFoundException;
 
 	public void acceptFriendInvitation(User user, int uid) throws RemoteException, InvalidSessionException;
+
+	public void uploadFile(User user, int cid, String fileName, byte[] file)
+			throws RemoteException, InvalidSessionException, IOException;
 }

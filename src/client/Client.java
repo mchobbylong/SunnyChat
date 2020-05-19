@@ -1,5 +1,11 @@
 package client;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -122,6 +128,18 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		return 1;
 	}
 
+	public void sendFile(int cid, File file) throws IOException {
+		byte[] rawFile = new byte[(int) file.length()];
+		BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+		is.read(rawFile);
+		is.close();
+		try {
+			serverIF.uploadFile(me, cid, file.getName(), rawFile);
+		} catch (RemoteException | InvalidSessionException e) {
+			raiseFatalError(e);
+		}
+	}
+
 	public void logout() {
 		try {
 			serverIF.logout(me);
@@ -173,6 +191,28 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 		}).start();
 	}
 
+	@Override
+	public void receiveFile(String fileName, byte[] fileContent) throws RemoteException {
+		new Thread(new Runnable() {
+			public void run() {
+				File f = new File("./" + fileName);
+				try {
+					if (!f.exists())
+						f.createNewFile();
+					BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(f));
+					os.write(fileContent);
+					os.close();
+					JOptionPane.showMessageDialog(null,
+							String.format("Successfully get the file and saved in:\n%s", f.getCanonicalPath()), "Hint",
+							JOptionPane.INFORMATION_MESSAGE);
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(null, "Failed to get the file from server :(", "Hint",
+							JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}).start();
+	}
+
 	public void raiseFatalError(Exception e) {
 		JOptionPane.showMessageDialog(null, e.getMessage(), "Fatal Error", JOptionPane.ERROR_MESSAGE);
 		System.exit(1);
@@ -194,5 +234,4 @@ public class Client extends UnicastRemoteObject implements ClientIF {
 			System.exit(1);
 		}
 	}
-
-}// end class
+}

@@ -1,5 +1,11 @@
 package server;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -25,6 +31,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	private static String serviceName = "SunnyChatService";
 
 	private Hashtable<Integer, ChatClient> onlineUsers;
+	private Hashtable<Integer, String> roomFiles;
 
 	// asynchronized thread pool
 	private ExecutorService threadPool = Executors.newFixedThreadPool(12);
@@ -33,6 +40,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	public Server() throws RemoteException {
 		super();
 		onlineUsers = new Hashtable<>();
+		roomFiles = new Hashtable<>();
 	}
 
 	public static void main(String[] args) {
@@ -50,7 +58,7 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		try {
 			lanHostIP = InetAddress.getLocalHost().getHostAddress();
 		} catch (Exception e) {
-			System.out.printf("Fatal Error: Failed to get the LAN IP.");
+			System.out.println("Fatal Error: Failed to get the LAN IP.");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -122,6 +130,25 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		});
 	}
 
+	private void pushRoomFile(User user, int cid) {
+		String filePath = roomFiles.get(cid);
+		ChatClient c = onlineUsers.get(user.uid);
+		if (filePath != null && c != null) {
+			File file = new File(filePath);
+			try {
+				byte[] rawFile = new byte[(int) file.length()];
+				BufferedInputStream is = new BufferedInputStream(new FileInputStream(file));
+				is.read(rawFile);
+				is.close();
+				c.client.receiveFile(file.getName(), rawFile);
+			} catch (RemoteException e) {
+				// forcedLogout(user.uid);
+			} catch (IOException e) {
+				System.out.printf("Warning: Failed to push file %s to user.\n", filePath);
+			}
+		}
+	}
+
 	@Override
 	public User login(String userName, String password, ClientIF client)
 			throws RemoteException, ObjectNotFoundException {
@@ -189,6 +216,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 	@Override
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
+
+		// Check if the user wants to download a file
+		if (message.trim().equals("/getfile")) {
+			pushRoomFile(user, cid);
+			return;
+		}
 		ChatMessageModel messageModel = new ChatMessageModel(cid, user, message);
 		pushMessage(messageModel);
 	}
@@ -237,5 +270,37 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		pushChatRoom(onlineUsers.get(uid), roomModel);
 		sendMessage(UserModel.SERVER_USER, roomModel.cid, "Your friend has accepted the invitation. Chat now!");
 		pushChatRoom(onlineUsers.get(user.uid), roomModel);
+	}
+
+	@Override
+	public void uploadFile(User user, int cid, String fileName, byte[] fileContent)
+			throws RemoteException, InvalidSessionException, IOException {
+		Session.validateSession(user);
+
+		// Create directory for this chatroom
+		File roomDir = new File(String.format("./uploaded_files/%d", cid));
+		if (!roomDir.exists())
+			roomDir.mkdirs();
+
+		String filePath = String.format("./uploaded_files/%d/%s", cid, fileName);
+		File f = new File(filePath);
+		try {
+			if (!f.exists())
+				f.createNewFile();
+			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(f));
+			os.write(fileContent);
+			os.close();
+
+			// Store this file into corresponding chat room
+			roomFiles.put(cid, filePath);
+
+			// Broadcast an message to the chat room, to notify all users
+			sendMessage(UserModel.SERVER_USER, cid, String
+					.format("User %s has shared a file '%s', type '/getfile' to download.", user.userName, fileName));
+		} catch (IOException e) {
+			System.out.printf("Warning: Failed to write file from user %s\n", user.userName);
+			e.printStackTrace();
+			throw e;
+		}
 	}
 }
