@@ -25,6 +25,9 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 	private static Icon openEye = new ImageIcon("image/chatroom/see_group_members.png");
 	private static Icon closeEye = new ImageIcon("image/chatroom/unable_see_group_members.png");
 
+	// title label
+	private JLabel titleLabel;
+
 	private Client chatClient;
 	private JButton exitButton, minButton;// exit button and minimize button
 	private JLabel backgroud;
@@ -95,6 +98,12 @@ public class ClientMainGUI extends JFrame implements ActionListener {
 		fileButton.addActionListener(this);
 		fileButton.setBounds(616, 350, 164, 33);
 		c.add(fileButton);
+
+		// title (with user's name)
+		titleLabel = new JLabel(String.format("Welcome, %s!", client.me.userName), JLabel.RIGHT);
+		titleLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 22));
+		titleLabel.setBounds(200, 0, 520, 30);
+		c.add(titleLabel);
 
 		// receive message
 		textArea = new JTextArea(8, 34);
