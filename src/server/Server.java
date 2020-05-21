@@ -83,10 +83,22 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		}
 	}
 
+	/**
+	 * Get all members in the given chat room.
+	 *
+	 * @param cid A ChatRoom id
+	 * @return A list of User instances
+	 */
 	private ArrayList<User> getChatRoomMembers(int cid) {
 		return UserModel.getChatRoomMembers(cid);
 	}
 
+	/**
+	 * Push all related ChatRooms to a client (just after his login).
+	 *
+	 * @param userModel The UserModel instance, represent the user
+	 * @param client    The client interface
+	 */
 	private void pushAllChatRooms(UserModel userModel, ClientIF client) {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
@@ -107,6 +119,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		});
 	}
 
+	/**
+	 * Push a single ChatRoom to a client (typically after his joining a group chat)
+	 *
+	 * @param c         A ChatClient instance
+	 * @param roomModel A ChatRoomModel instance, represent the ChatRoom
+	 */
 	private void pushChatRoom(ChatClient c, ChatRoomModel roomModel) {
 		if (c == null)
 			return;
@@ -124,6 +142,11 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		});
 	}
 
+	/**
+	 * Push a single ChatMessage to all the clients in the corresponding ChatRoom.
+	 *
+	 * @param messageModel The ChatMessageModel instance
+	 */
 	private void pushMessage(ChatMessageModel messageModel) {
 		threadPool.submit(new Callable<Void>() {
 			public Void call() throws Exception {
@@ -143,6 +166,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		});
 	}
 
+	/**
+	 * Push the recent uploaded file in a ChatRoom to a client.
+	 *
+	 * @param user The User instance
+	 * @param cid  ChatRoom id
+	 */
 	private void pushRoomFile(User user, int cid) {
 		String filePath = roomFiles.get(cid);
 		ChatClient c = onlineUsers.get(user.uid);
@@ -162,6 +191,11 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		}
 	}
 
+	/**
+	 * Force a user to logout (since the broken connection to his client)
+	 *
+	 * @param uid The User id
+	 */
 	private void forcedLogout(int uid) {
 		ChatClient c = onlineUsers.remove(uid);
 		if (c != null)
@@ -169,6 +203,15 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 					TimeUtil.getCurrentTime(), c.user.userName);
 	}
 
+	/**
+	 * Log into the server using given username and password.
+	 *
+	 * @param userName Username
+	 * @param password Password
+	 * @param client   The client interface
+	 * @return A valid User instance (with session)
+	 * @category RemoteMethod
+	 */
 	@Override
 	public User login(String userName, String password, ClientIF client)
 			throws RemoteException, ObjectNotFoundException {
@@ -191,6 +234,11 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		return user;
 	}
 
+	/**
+	 * Log out the server.
+	 *
+	 * @param user The User instance (with session)
+	 */
 	@Override
 	public void logout(User user) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
@@ -207,6 +255,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		System.out.println(String.format("[%s] User %s is logged out.", currentTime, user.userName));
 	}
 
+	/**
+	 * Register a new user using given username and password.
+	 *
+	 * @param userName Username
+	 * @param password Password
+	 */
 	@Override
 	public void register(String userName, String password) throws RemoteException, DuplicatedObjectException {
 		UserModel user = new UserModel();
@@ -216,6 +270,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		System.out.println(String.format("[%s] User %s is registered.", TimeUtil.getCurrentTime(), userName));
 	}
 
+	/**
+	 * Join a group chat.
+	 *
+	 * @param groupNumber Group number of the group chat
+	 * @param user        The User instance (with session)
+	 */
 	@Override
 	public void joinGroup(int groupNumber, User user)
 			throws RemoteException, InvalidSessionException, DuplicatedObjectException {
@@ -233,6 +293,13 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		}
 	}
 
+	/**
+	 * Send a message to a ChatRoom.
+	 *
+	 * @param user    The User instance (with session)
+	 * @param cid     ChatRoom id
+	 * @param message A message string
+	 */
 	@Override
 	public void sendMessage(User user, int cid, String message) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
@@ -246,6 +313,14 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		pushMessage(messageModel);
 	}
 
+	/**
+	 * Get all members' names in the ChatRoom (typically be used only with group
+	 * chats).
+	 *
+	 * @param user The User instance (with session)
+	 * @param cid  ChatRoom id
+	 * @return A list of Strings, which are members' names
+	 */
 	@Override
 	public String[] getChatRoomMembers(User user, int cid) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
@@ -255,6 +330,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		return (String[]) names.toArray(new String[names.size()]);
 	}
 
+	/**
+	 * Get all online users (to send friend invitations).
+	 *
+	 * @param user The User instance (with session)
+	 * @return A list of User instances
+	 */
 	@Override
 	public ArrayList<User> getOnlineUsers(User user) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
@@ -265,6 +346,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		return users;
 	}
 
+	/**
+	 * Send a friend invitation to an online user.
+	 *
+	 * @param user The inviter User instance (with session)
+	 * @param uid  The invitee user id
+	 */
 	@Override
 	public void sendFriendInvitation(User user, int uid)
 			throws RemoteException, InvalidSessionException, DuplicatedObjectException, ObjectNotFoundException {
@@ -284,6 +371,12 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		}
 	}
 
+	/**
+	 * Accept a friend invitation, and create a private chat room.
+	 *
+	 * @param user The invitee User instance (with session)
+	 * @param uid  The inviter user id
+	 */
 	@Override
 	public void acceptFriendInvitation(User user, int uid) throws RemoteException, InvalidSessionException {
 		Session.validateSession(user);
@@ -293,6 +386,14 @@ public class Server extends UnicastRemoteObject implements ServerIF {
 		pushChatRoom(onlineUsers.get(user.uid), roomModel);
 	}
 
+	/**
+	 * Upload a file to a ChatRoom.
+	 *
+	 * @param user        The User instance (with session)
+	 * @param cid         ChatRoom id
+	 * @param fileName    Name of the uploaded file
+	 * @param fileContent Raw bytes of the uploaded file
+	 */
 	@Override
 	public void uploadFile(User user, int cid, String fileName, byte[] fileContent)
 			throws RemoteException, InvalidSessionException, IOException {

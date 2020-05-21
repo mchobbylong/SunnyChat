@@ -6,6 +6,9 @@ import java.util.HashMap;
 
 import org.mariadb.jdbc.MariaDbPoolDataSource;
 
+/**
+ * Helper to interact with database.
+ */
 public class DatabaseHelper {
 	private static MariaDbPoolDataSource pool;
 

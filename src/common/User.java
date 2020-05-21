@@ -2,6 +2,9 @@ package common;
 
 import java.io.Serializable;
 
+/**
+ * A serializable definition of ChatRoom.
+ */
 public class User implements Serializable {
 	private static final long serialVersionUID = -4128101032767815161L;
 

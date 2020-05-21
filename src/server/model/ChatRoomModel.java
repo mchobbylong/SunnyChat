@@ -7,6 +7,11 @@ import java.util.HashMap;
 
 import common.*;
 
+/**
+ * Database model of ChatRoom
+ *
+ * @see ChatRoom
+ */
 public class ChatRoomModel {
 	public int cid;
 
@@ -42,6 +47,12 @@ public class ChatRoomModel {
 		this.groupNumber = (Integer) row.get("group_number");
 	}
 
+	/**
+	 * Get a new private chat room with two users in it.
+	 *
+	 * @param uid1
+	 * @param uid2
+	 */
 	public ChatRoomModel(int uid1, int uid2) {
 		String sql = "insert into chatroom (type) values (0)";
 		cid = DatabaseHelper.insert(sql);
@@ -51,6 +62,13 @@ public class ChatRoomModel {
 		DatabaseHelper.execute(sql);
 	}
 
+	/**
+	 * Get a room by given group number. If the room does not exist, then create
+	 * one.
+	 *
+	 * @param groupNumber A group number.
+	 * @return A ChatRoomModel instance.
+	 */
 	public static ChatRoomModel getGroupChat(int groupNumber) {
 		ChatRoomModel room = new ChatRoomModel();
 		room.groupNumber = groupNumber;
@@ -69,7 +87,10 @@ public class ChatRoomModel {
 	}
 
 	/**
-	 * Load user related ChatRoomModels
+	 * Load all ChatRoomModels with given user in them.
+	 *
+	 * @param uid User id.
+	 * @return A list of ChatRoomModels
 	 */
 	public static ArrayList<ChatRoomModel> getUserRelatedRooms(int uid) {
 		ArrayList<ChatRoomModel> rooms = new ArrayList<>();
@@ -87,13 +108,18 @@ public class ChatRoomModel {
 		return rooms;
 	}
 
+	/**
+	 * Convert a ChatRoomModel to a serializable ChatRoom instance.
+	 *
+	 * @return A ChatRoom instance
+	 */
 	public ChatRoom getInstance() {
 		return new ChatRoom(cid, type, groupNumber);
 	}
 
 	/**
 	 * Get room title in the given user's identity according to the room's type and
-	 * members
+	 * members.
 	 *
 	 * @return Title of this ChatRoom
 	 */
@@ -111,7 +137,7 @@ public class ChatRoomModel {
 	}
 
 	/**
-	 * Add a user into the room
+	 * Add a user into the room.
 	 *
 	 * @param user User instance
 	 * @throws DuplicatedObjectException
@@ -131,6 +157,15 @@ public class ChatRoomModel {
 		DatabaseHelper.execute(sql);
 	}
 
+	/**
+	 * Check if two users are in a same private chat room (or, whether they are
+	 * "friends").
+	 *
+	 * @param uid1
+	 * @param uid2
+	 * @return A boolean that indicates whether the two users are in the same
+	 *         private chat room.
+	 */
 	public static boolean isFriend(int uid1, int uid2) {
 		String sql = String.format("select count(*) as count "
 				+ "from (chatroom natural join chatroom_user as t1) inner join chatroom_user as t2 on t1.cid=t2.cid "

@@ -2,6 +2,9 @@ package common;
 
 import java.io.Serializable;
 
+/**
+ * A serializable definition of ChatMessage.
+ */
 public class ChatMessage implements Serializable {
 	private static final long serialVersionUID = -7166042503072155917L;
 

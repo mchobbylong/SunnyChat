@@ -10,6 +10,11 @@ import server.DatabaseHelper;
 import server.TimeUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 
+/**
+ * Database model of ChatMessage
+ *
+ * @see ChatMessage
+ */
 public class ChatMessageModel {
 	public int mid;
 	public int cid;

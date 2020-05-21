@@ -78,12 +78,21 @@ public class UserModel {
 		this.uid = DatabaseHelper.insert(sql);
 	}
 
+	/**
+	 * Update the user.
+	 */
 	public void update() {
 		String sql = String.format("update user set userName='%s', password='%s', last_online='%s' where uid=%d",
 				userName, password, lastOnline, uid);
 		DatabaseHelper.execute(sql);
 	}
 
+	/**
+	 * Get all members in the given chat room id.
+	 *
+	 * @param cid A ChatRoom id.
+	 * @return A list of User instances.
+	 */
 	public static ArrayList<User> getChatRoomMembers(int cid) {
 		ArrayList<User> users = new ArrayList<>();
 		String sql = String.format("select uid, username from user natural join chatroom_user where cid=%d", cid);
